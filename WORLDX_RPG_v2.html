@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#17120f">
+<title>WORLDX</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0c0907;--bg:#17120f;--panel:#251d17;--panel2:#33281f;--line:#54422f;--bone:#eadfc8;--dim:#a8977e;--ember:#e8832a;--gold:#e0b552;--blood:#c4412d;--moss:#86a65a;--ice:#7fb7cf;--hd:'Pirata One',Georgia,serif;--bd:'Alegreya Sans','Trebuchet MS',system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--bone);font-family:var(--bd);font-size:16px;overflow:hidden;overscroll-behavior:none}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.07;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 .9 0 0 0 0 .7 0 0 0 .9 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>")}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.hidden{display:none!important}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:560px;margin:0 auto;position:relative}
+.hud{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 9px;background:var(--panel);border-bottom:3px solid var(--ink);box-shadow:0 2px 0 var(--line)}
+.emblem{width:46px;height:46px;flex:none;display:grid;place-items:center;background:var(--ember);border:3px solid var(--ink);border-radius:50% 50% 50% 8px;box-shadow:2px 2px 0 var(--ink);font:400 24px var(--hd);color:var(--ink);transform:rotate(-4deg)}
+.hud-mid{flex:1;min-width:0}
+.hud-name{font:400 20px/1 var(--hd);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xpbar{height:9px;border:2px solid var(--ink);background:#120d0a;margin-top:5px;position:relative}
+.xpbar i{position:absolute;inset:0 auto 0 0;background:var(--gold);transition:width .3s}
+.xptxt{font-size:11px;color:var(--dim);margin-top:2px}
+.purse{display:flex;align-items:center;gap:6px;font:400 21px var(--hd);color:var(--gold);padding:4px 10px 4px 8px;border:2px solid var(--ink);background:#1a140f;box-shadow:2px 2px 0 var(--ink)}
+.purse svg{width:20px;height:20px}
+main{flex:1;overflow-y:auto;padding:14px 12px 104px;-webkit-overflow-scrolling:touch}
+.nav{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;display:flex;background:var(--panel);border-top:3px solid var(--ink);box-shadow:0 -2px 0 var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
+.nav button{flex:1;min-width:0;background:none;border:0;color:var(--dim);padding:9px 0 7px;font:700 11px var(--bd);letter-spacing:.7px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav button svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.nav button.on{color:var(--ember);box-shadow:inset 0 4px 0 var(--ember)}
+.ttl{font:400 31px/1 var(--hd);margin:2px 2px 14px;letter-spacing:.5px}
+.h3{font:400 22px/1 var(--hd);margin:20px 2px 10px;color:var(--gold);letter-spacing:.4px}
+.sub{color:var(--dim);font-size:14px}
+.card{background:var(--panel);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink),inset 0 0 0 2px var(--line);padding:13px;margin-bottom:12px}
+.btn{font:400 20px/1 var(--hd);letter-spacing:.5px;color:var(--ink);background:var(--ember);border:3px solid var(--ink);padding:10px 16px;box-shadow:3px 4px 0 var(--ink);transition:transform .06s,box-shadow .06s}
+.btn:active{transform:translate(2px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.alt{background:var(--panel2);color:var(--bone)}
+.btn.gold{background:var(--gold)}
+.btn.sm{font-size:17px;padding:7px 12px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.4;pointer-events:none}
+.seg{display:flex;margin-bottom:14px;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.seg button{flex:1;background:var(--panel);border:0;border-right:3px solid var(--ink);padding:9px 4px;font:400 18px var(--hd);color:var(--dim)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ember);color:var(--ink)}
+.wc{display:block;width:100%;padding:0;border:3px solid var(--ink);background:var(--panel);box-shadow:4px 4px 0 var(--ink);margin-bottom:16px;text-align:left;position:relative}
+.wc .bn{height:118px;overflow:hidden;border-bottom:3px solid var(--ink)}
+.wc svg{display:block;width:100%;height:100%}
+.wc-i{padding:10px 12px 11px;display:flex;flex-direction:column;gap:2px}
+.wc-i b{font:400 24px/1 var(--hd);letter-spacing:.4px}
+.wc-i span{font-size:14px;color:var(--dim)}
+.wc.lock .bn{filter:grayscale(1) brightness(.45)}
+.wc .lk{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:44px;height:44px}
+.wc .lk svg{width:100%;height:100%}
+.back{background:none;border:0;color:var(--ember);font:400 20px var(--hd);padding:0 0 10px;display:flex;align-items:center;gap:6px}
+.back svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:3}
+.foe{display:flex;gap:12px;align-items:center;background:var(--panel);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:8px;margin-bottom:11px}
+.foe.boss{box-shadow:3px 3px 0 var(--ink),inset 0 0 0 2px var(--blood)}
+.pt{width:74px;height:74px;flex:none;background:#1a130e;border:2px solid var(--ink);overflow:hidden}
+.pt svg{width:100%;height:100%;display:block}
+.foe-i{flex:1;min-width:0}
+.foe-i b{font:400 20px/1.05 var(--hd);display:block;letter-spacing:.3px}
+.foe-i small{color:var(--dim);font-size:13px;display:block;margin-top:2px}
+.tag{display:inline-block;font:800 10px var(--bd);letter-spacing:.8px;text-transform:uppercase;padding:2px 6px;border:2px solid var(--ink);margin-right:4px}
+.tag.boss{background:var(--blood);color:var(--bone)}
+.tag.ok{background:var(--moss);color:var(--ink)}
+.dg-easy{color:var(--moss)}.dg-even{color:var(--gold)}.dg-hard{color:var(--blood)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{position:relative;background:var(--panel);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:8px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.tile svg{width:54px;height:54px}
+.tile b{font:700 13px/1.1 var(--bd)}
+.tile span{font:400 16px var(--hd);color:var(--gold)}
+.tile.eq{box-shadow:3px 3px 0 var(--ink),inset 0 0 0 2px var(--ember)}
+.eqtag{position:absolute;top:-8px;right:-4px;background:var(--ember);color:var(--ink);border:2px solid var(--ink);font:800 9px var(--bd);padding:1px 5px;text-transform:uppercase;font-style:normal}
+.row{display:flex;align-items:center;gap:12px}
+.row .grow{flex:1;min-width:0}
+.row b{font:400 20px/1.05 var(--hd);display:block}
+.row small{color:var(--dim);font-size:13px;display:block;margin-top:2px}
+.ico{width:52px;height:52px;flex:none;background:#1a130e;border:2px solid var(--ink);padding:3px}
+.ico svg{width:100%;height:100%}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:10px}
+.stats div{display:flex;justify-content:space-between;border-bottom:2px dotted var(--line);padding-bottom:3px;font-size:15px}
+.stats div b{font:400 18px var(--hd);color:var(--gold)}
+.hero-top{display:flex;gap:14px;align-items:center}
+.hero-pic{width:112px;height:112px;flex:none;background:#1a130e;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.hero-pic svg{width:100%;height:100%;display:block}
+.bar2{height:10px;border:2px solid var(--ink);background:#120d0a;position:relative;margin-top:5px}
+.bar2 i{position:absolute;inset:0 auto 0 0;background:var(--moss)}
+.bar2.g i{background:var(--gold)}
+.petrow{display:flex;gap:8px}
+.pet{flex:1;background:var(--panel2);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:6px 4px 8px;text-align:center}
+.pet svg{width:62px;height:62px;display:block;margin:0 auto}
+.pet b{font:400 17px var(--hd);display:block}
+.pet.on{background:var(--ember);color:var(--ink)}
+.chrow{display:flex;gap:12px;align-items:center}
+.chico{width:78px;flex:none}
+.chico svg{width:100%;display:block}
+.odds{font-size:12.5px;color:var(--dim);line-height:1.35;margin-top:3px}
+.stars{color:var(--gold);font:400 18px var(--hd)}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.st{width:calc(20% - 5px);aspect-ratio:1;display:grid;place-items:center;font:400 20px var(--hd);background:#1a130e;border:2px solid var(--ink);color:var(--dim)}
+.st.done{background:var(--moss);color:var(--ink)}
+.st.cur{background:var(--ember);color:var(--ink);box-shadow:0 0 0 2px var(--gold)}
+.st.bs{border-color:var(--blood)}
+.empty{text-align:center;color:var(--dim);padding:40px 10px;font-size:15px}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);z-index:80;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center}
+.toast{background:var(--bone);color:var(--ink);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font:700 14px var(--bd);padding:7px 14px;animation:tin .25s ease-out}
+@keyframes tin{from{transform:translateY(-10px);opacity:0}}
+.modal{position:fixed;inset:0;z-index:70;background:rgba(8,5,3,.78);display:flex;align-items:flex-end;justify-content:center;padding:14px}
+.modal.mid{align-items:center}
+.sheet{width:100%;max-width:440px;background:var(--panel);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink),inset 0 0 0 2px var(--line);padding:16px;animation:pop .22s ease-out;max-height:90dvh;overflow:auto}
+@keyframes pop{from{transform:translateY(18px) scale(.97);opacity:0}}
+.sheet h2{font:400 34px/1 var(--hd);margin:0 0 8px;letter-spacing:.5px}
+.sheet h2.win{color:var(--gold)}.sheet h2.lose{color:var(--blood)}
+.rw{display:flex;justify-content:space-between;padding:6px 0;border-bottom:2px dotted var(--line);font-size:16px}
+.rw b{font:400 19px var(--hd);color:var(--gold)}
+.lvlup{margin:10px 0;background:var(--ember);color:var(--ink);border:3px solid var(--ink);padding:8px 10px;font:400 20px var(--hd);text-align:center;transform:rotate(-1deg)}
+.acts2{display:flex;gap:10px;margin-top:14px}
+.acts2 .btn{flex:1;white-space:nowrap;padding-left:8px;padding-right:8px}
+/* battle */
+#battle{position:fixed;inset:0;z-index:60;background:var(--ink);display:flex;flex-direction:column;max-width:560px;margin:0 auto;overflow:hidden;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
+.bt-scene{position:absolute;inset:0}
+.bt-scene svg{width:100%;height:100%;display:block}
+.bt-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,9,7,.55),rgba(12,9,7,0) 28%,rgba(12,9,7,0) 55%,rgba(12,9,7,.82))}
+#battle>*:not(.bt-scene):not(.bt-shade){position:relative}
+.hurtfx{position:absolute!important;inset:0;pointer-events:none;box-shadow:inset 0 0 70px 14px rgba(196,65,45,.0);transition:box-shadow .25s}
+#battle.hurt .hurtfx{box-shadow:inset 0 0 70px 14px rgba(196,65,45,.75);transition:none}
+#battle.heavy .hurtfx{box-shadow:inset 0 0 90px 30px rgba(196,65,45,.95);transition:none}
+.bt-top{display:flex;align-items:center;gap:10px}
+.icon-btn{width:42px;height:42px;background:var(--panel);border:3px solid var(--ink);box-shadow:2px 2px 0 var(--ink);display:grid;place-items:center;padding:0}
+.icon-btn svg{width:22px;height:22px;fill:none;stroke:var(--bone);stroke-width:3}
+.bt-title{flex:1;min-width:0}
+.bt-title b{font:400 28px/1 var(--hd);display:block;text-shadow:2px 2px 0 var(--ink);letter-spacing:.5px}
+.bt-title small{font:800 12px var(--bd);letter-spacing:1px;text-transform:uppercase;color:var(--gold);text-shadow:1px 1px 0 var(--ink)}
+.bar{height:26px;border:3px solid var(--ink);background:#1a1410;position:relative;overflow:hidden;box-shadow:3px 3px 0 var(--ink)}
+.bar i{position:absolute;inset:0 auto 0 0;width:100%;background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,transparent 2px 14px),var(--c);transition:width .18s}
+.bar span{position:absolute;inset:0;display:grid;place-items:center;font:700 13px var(--bd);text-shadow:1px 1px 0 var(--ink);letter-spacing:.4px}
+.bar.e{--c:var(--blood)}.bar.p{--c:var(--moss)}
+.ebar{margin-top:12px}
+.stage{flex:1;display:grid;place-items:center;min-height:0}
+.spr{width:min(76vw,290px,36dvh);aspect-ratio:1;position:relative;touch-action:manipulation}
+.spr.boss{width:min(88vw,350px,42dvh)}
+.spr .bob{animation:bob 2.6s ease-in-out infinite}
+.spr svg{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 0 rgba(0,0,0,.35))}
+.spr.hit{animation:hit .18s}
+.spr.die{animation:die .7s forwards}
+@keyframes bob{50%{transform:translateY(-8px) scale(1.015)}}
+@keyframes hit{0%{transform:translateX(0)}25%{transform:translateX(-9px) rotate(-2deg);filter:brightness(2.2)}60%{transform:translateX(7px) rotate(1.5deg)}100%{transform:none}}
+@keyframes die{to{transform:translateY(40px) rotate(8deg) scale(.8);opacity:0;filter:grayscale(1)}}
+.warn{position:absolute;top:2%;left:50%;transform:translateX(-50%);background:var(--blood);color:var(--bone);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font:400 20px var(--hd);padding:6px 12px;white-space:nowrap;animation:blink .35s infinite alternate;z-index:3}
+@keyframes blink{to{background:#7d1f12}}
+#floats{position:absolute;inset:0;pointer-events:none;z-index:4}
+.fl{position:absolute;font:400 34px var(--hd);color:#fff;text-shadow:-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),2px 2px 0 var(--ink);animation:fup .95s ease-out forwards;white-space:nowrap}
+.fl.crit{color:var(--gold);font-size:46px}
+.fl.coin{color:var(--gold);font-size:24px}
+.fl.item{color:var(--ice);font-size:22px}
+.fl.hurt{color:#ff7a5f;font-size:30px}
+.fl.heal{color:#9be06a}
+.fl.shield{color:var(--ice);font-size:24px}
+@keyframes fup{0%{transform:translate(-50%,0) scale(.6);opacity:0}15%{transform:translate(-50%,-10px) scale(1.15);opacity:1}100%{transform:translate(-50%,-90px) scale(1);opacity:0}}
+.blog{min-height:42px;text-align:center;font:500 15px/1.25 var(--bd);color:var(--bone);text-shadow:1px 1px 0 var(--ink);padding:0 6px 8px}
+.pbar{display:flex;align-items:center;gap:8px}
+.pbar .bar{flex:1}
+.shieldtag{font:400 17px var(--hd);background:var(--ice);color:var(--ink);border:3px solid var(--ink);padding:3px 8px}
+.acts{display:flex;gap:10px;align-items:stretch;margin-top:12px}
+.act{position:relative;overflow:hidden;width:84px;background:var(--panel);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 2px}
+.act svg{width:30px;height:30px}
+.act em{font:700 11px var(--bd);font-style:normal;text-transform:uppercase;letter-spacing:.6px;color:var(--dim)}
+.act b{font:400 16px var(--hd);color:var(--gold);position:absolute;top:1px;right:5px}
+.strike{position:relative;overflow:hidden;flex:1;min-height:92px;background:var(--ember);border:3px solid var(--ink);box-shadow:4px 5px 0 var(--ink);font:400 40px var(--hd);color:var(--ink);letter-spacing:1px;touch-action:manipulation}
+.strike:active{transform:translate(2px,3px);box-shadow:2px 2px 0 var(--ink)}
+.cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(12,9,7,.62);pointer-events:none}
+.chest-wrap{text-align:center;padding:10px 0}
+.chest-wrap .chest>svg{width:170px;overflow:visible;display:block;margin:0 auto}
+.chest-wrap{overflow:hidden}
+.chest.shake{animation:cshake .9s}
+@keyframes cshake{10%,50%,90%{transform:rotate(-5deg)}30%,70%{transform:rotate(5deg)}}
+.chest .lid{transform-box:fill-box;transform-origin:left bottom;transition:transform .35s}
+.chest.open .lid{transform:rotate(-24deg) translate(-2px,-3px)}
+.reveal{animation:pop .35s ease-out}
+.reveal .ico{width:84px;height:84px;margin:8px auto;padding:6px}
+.reveal .ico svg{width:100%;height:100%;display:block}
+.reveal h3{font:400 28px var(--hd);margin:4px 0}
+
+.bar.s{--c:var(--ice);height:17px;margin-top:6px}.bar.s span{font-size:11px}
+.ultbar{height:15px;border:3px solid var(--ink);background:#1a1410;margin-top:6px;position:relative;overflow:hidden;box-shadow:2px 2px 0 var(--ink)}
+.ultbar i{position:absolute;inset:0 auto 0 0;width:0;background:#ff6a2a;transition:width .2s}
+.ultbar span{position:absolute;inset:0;display:grid;place-items:center;font:700 10px var(--bd);letter-spacing:.8px;text-transform:uppercase;text-shadow:1px 1px 0 var(--ink)}
+.ultbar.warn{animation:blink .3s infinite alternate}.ultbar.warn i{background:var(--blood)}
+.chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;min-height:26px}
+.chip{font:400 15px var(--hd);background:var(--panel);border:2px solid var(--ink);padding:1px 8px;box-shadow:2px 2px 0 var(--ink);text-shadow:1px 1px 0 var(--ink)}
+.chip.r1{color:#f2d34a}.chip.r2{color:#f0a030}.chip.r3{color:#ff6a3a}.chip.r4{color:#ff3a2a;animation:blink .4s infinite alternate}
+.mns{position:absolute;left:0;right:0;bottom:2px;display:flex;justify-content:center;gap:8px;z-index:5}
+.mn{width:74px;background:rgba(12,9,7,.78);border:3px solid var(--ink);padding:2px 2px 3px;box-shadow:2px 2px 0 var(--ink);animation:pop .25s ease-out}
+.mn .mp svg{width:100%;display:block}
+.mb{height:7px;background:#120d0a;border:2px solid var(--ink);margin-top:2px;position:relative}
+.mb i{position:absolute;inset:0 auto 0 0;background:var(--blood)}
+.spr.rage .bob{animation-duration:1.4s}
+.inp{width:100%;padding:11px 12px;font:700 18px var(--bd);background:#1a130e;color:var(--bone);border:3px solid var(--ink);outline:none;margin:6px 0 10px;-webkit-user-select:text;user-select:text}
+.adg{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.adg .adl{flex:1;font:400 19px var(--hd)}
+.adg .btn{min-width:46px}
+.adg select{flex:1;min-width:0;padding:9px 6px;font:700 14px var(--bd);background:#1a130e;color:var(--bone);border:3px solid var(--ink)}
+
+.roll{position:relative;overflow:hidden;border:3px solid var(--ink);background:#120d0a;height:140px;box-shadow:inset 0 0 0 2px var(--line);margin:8px 0}
+.roll::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(90deg,#120d0a 0,transparent 16%,transparent 84%,#120d0a 100%)}
+.roll::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:4px;margin-left:-2px;background:var(--gold);z-index:4;box-shadow:0 0 12px 2px rgba(224,181,82,.7)}
+.strip{display:flex;gap:6px;padding:10px 0;will-change:transform}
+.rc{flex:none;width:96px;height:118px;background:var(--panel2);border:3px solid var(--ink);border-bottom:7px solid var(--rc);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;box-shadow:inset 0 -26px 22px -18px var(--rc)}
+.rc svg{width:58px;height:58px}
+.rc b{font:700 11px/1.1 var(--bd);text-align:center}
+.rc.win{animation:wglow .7s ease-in-out infinite alternate;position:relative;z-index:2}
+@keyframes wglow{from{box-shadow:inset 0 -26px 22px -18px var(--rc),0 0 6px 0 var(--rc)}to{box-shadow:inset 0 -26px 22px -18px var(--rc),0 0 22px 6px var(--rc)}}
+
+.ragefx{position:absolute!important;inset:0;pointer-events:none;box-shadow:inset 0 0 130px 36px rgba(255,40,20,var(--rg,0));animation:rpulse 1.1s ease-in-out infinite alternate}
+@keyframes rpulse{to{opacity:.55}}
+.evt{position:absolute!important;left:0;right:0;top:36%;text-align:center;pointer-events:none;z-index:8;font:400 44px/1 var(--hd);letter-spacing:1px;color:#ffd23a;opacity:0;text-shadow:-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink),3px 3px 0 var(--ink),0 0 24px rgba(255,80,20,.9)}
+.evt.rg{color:#ff5a3a}
+.evt.sm{color:#ffb13b}
+.evt.go{animation:evgo 1.7s ease-out forwards}
+@keyframes evgo{0%{opacity:0;transform:scale(.4)}12%{opacity:1;transform:scale(1.25)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1.05) translateY(-14px)}}
+
+/* WORLDX expansion pack */
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.exp-tile{background:linear-gradient(145deg,#33251b,#1b130f);border:2px solid var(--line);box-shadow:3px 3px 0 var(--ink);padding:12px;text-align:left;min-height:94px}
+.exp-tile b{display:block;font:400 20px var(--hd);color:var(--gold);margin-bottom:4px}
+.exp-tile small{display:block;color:var(--dim);font-size:12px;line-height:1.25}
+.exp-pill{display:inline-block;border:1px solid var(--line);padding:3px 7px;margin:2px;border-radius:20px;font-size:12px;color:var(--dim)}
+.boss-intro{animation:bossIntro 1.4s ease both}
+@keyframes bossIntro{0%{opacity:0;transform:scale(1.35);filter:brightness(2)}35%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:1}}
+#battle.shake{animation:screenShake .35s linear}
+@keyframes screenShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+#spr.windup{animation:enemyWindup .38s ease-in}
+@keyframes enemyWindup{0%{transform:translateX(0) scale(1)}55%{transform:translateX(-14px) scale(.95)}100%{transform:translateX(8px) scale(1.06)}}
+.weapon-trail{position:absolute;inset:12% 10%;pointer-events:none;z-index:4;opacity:0;border-radius:50%;filter:blur(2px)}
+.weapon-trail.fire{background:radial-gradient(ellipse,transparent 45%,rgba(255,90,20,.65) 47%,transparent 60%);animation:trail .32s ease-out}
+.weapon-trail.ice{background:radial-gradient(ellipse,transparent 43%,rgba(100,220,255,.65) 47%,transparent 60%);animation:trail .32s ease-out}
+.weapon-trail.lightning{background:linear-gradient(115deg,transparent 35%,#e5fbff 47%,#7c8dff 50%,transparent 58%);animation:trail .32s ease-out}
+@keyframes trail{0%{opacity:0;transform:scale(.55) rotate(-15deg)}35%{opacity:1;transform:scale(1.12) rotate(10deg)}100%{opacity:0;transform:scale(1.3) rotate(20deg)}}
+.season-banner{padding:14px;border:2px solid var(--gold);background:linear-gradient(120deg,#402018,#1b1510);margin-bottom:12px}
+.season-banner b{font:400 26px var(--hd);color:var(--gold)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hud">
+    <div class="emblem"><span id="lvl">1</span></div>
+    <div class="hud-mid"><div class="hud-name" id="pname">Странник</div><div class="xpbar"><i id="xpf"></i></div><div class="xptxt" id="xptxt"></div></div>
+    <div class="purse"><span id="coinico"></span><b id="coins">0</b></div>
+  </header>
+  <main id="view"></main>
+  <nav class="nav" id="nav"></nav>
+</div>
+<div id="battle" class="hidden"></div>
+<div id="modal" class="modal hidden"></div>
+<div id="toast"></div>
+
+<script>
+/*PURE_START*/
+const INK='#0c0907',BONE='#f1ead6';
+const svg=(b,vb='0 0 200 200')=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><g stroke="${INK}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${b}</g></svg>`;
+const limb=(d,w,c)=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w+7}"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+function XPN(l){return Math.round(100*l*Math.pow(1.16,l-1));}
+const SH=`<ellipse cx="100" cy="186" rx="60" ry="8" fill="#000" opacity=".3" stroke="none"/>`;
+const glow=(x,y,r,c)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".3" stroke="none"/>`;
+const eye=(x,y,rx,ry,c)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${c}" stroke-width="3"/><ellipse cx="${x}" cy="${y}" rx="${rx*.35}" ry="${ry*.75}" fill="${INK}" stroke="none"/>`;
+const flame=(x,y,s,c)=>`<path d="M${x} ${y}l${-9*s} ${-10*s}l${3*s} ${-12*s}l${6*s} ${8*s}l${2*s} ${-20*s}l${8*s} ${16*s}l${5*s} ${-6*s}l${3*s} ${24*s}z" fill="${c}" stroke-width="3"/>`;
+
+const SPR={
+slime:(p,o={})=>svg(`${SH}
+<path d="M34 166C26 112 54 60 100 60s74 52 66 106c-30 14-102 14-132 0z" fill="${p[0]}"/>
+<path d="M50 150C46 116 62 86 92 78c-20 22-24 52-16 82-14-2-22-6-26-10z" fill="${p[2]}" opacity=".55" stroke="none"/>
+<path d="M60 168c30 8 54 8 80 0" fill="none" stroke="${p[1]}" stroke-width="5" opacity=".5"/>
+${eye(78,112,12,15,'#f4ecd8')}${eye(124,112,12,15,'#f4ecd8')}
+<path d="M82 142q18 12 36 0" fill="none"/>
+<circle cx="148" cy="86" r="7" fill="${p[2]}" opacity=".6" stroke="none"/><circle cx="54" cy="96" r="5" fill="${p[2]}" opacity=".6" stroke="none"/>
+${o.crown?`<path d="M64 74L68 36 88 56 100 28 112 56 132 36 136 74z" fill="${p[3]}"/><circle cx="100" cy="52" r="5" fill="#c4412d" stroke-width="3"/><circle cx="76" cy="62" r="3.5" fill="#7ee0d0" stroke-width="2"/><circle cx="124" cy="62" r="3.5" fill="#7ee0d0" stroke-width="2"/>`:''}`),
+
+minion:(p,o={})=>svg(`${SH}
+<path d="M50 178L62 166 74 178 86 166 100 178 114 166 126 178 138 166 150 178 134 98C134 56 66 56 66 98z" fill="${p[0]}"/>
+<path d="M100 60C134 60 134 98 134 98L150 178 138 166 126 178 114 166 100 178z" fill="${p[1]}" opacity=".45" stroke="none"/>
+<path d="M78 100c0-24 44-24 44 0 0 22-9 32-22 32s-22-10-22-32z" fill="${INK}"/>
+${glow(90,102,10,p[3])}${glow(110,102,10,p[3])}
+<ellipse cx="90" cy="102" rx="4.5" ry="3.5" fill="${p[3]}" stroke="none"/><ellipse cx="110" cy="102" rx="4.5" ry="3.5" fill="${p[3]}" stroke="none"/>
+<path d="M72 148h56" stroke="${p[1]}" stroke-width="7" fill="none"/>
+${limb('M128 124Q146 132 150 142',9,p[0])}
+${o.fire?`${flame(160,138,1.6,p[3])}${flame(168,140,1,p[2])}`:`<path d="M146 136L180 92l6 6-30 44z" fill="#cfd4d8"/><path d="M142 142l12 8" stroke="${p[1]}" stroke-width="6" fill="none"/>`}`),
+
+boar:(p)=>svg(`${SH}
+<path d="M46 86L54 44 74 68 88 34 104 66 122 36 130 70 150 46 154 88z" fill="${p[1]}"/>
+<path d="M44 102C44 72 70 62 100 62s56 10 56 40c0 40-24 70-56 70S44 142 44 102z" fill="${p[0]}"/>
+<path d="M48 88L34 58 66 70z" fill="${p[0]}"/><path d="M152 88L166 58 134 70z" fill="${p[0]}"/>
+<ellipse cx="100" cy="136" rx="30" ry="24" fill="${p[2]}"/>
+<ellipse cx="90" cy="136" rx="4.5" ry="6.5" fill="${INK}" stroke="none"/><ellipse cx="110" cy="136" rx="4.5" ry="6.5" fill="${INK}" stroke="none"/>
+<path d="M74 150C58 154 50 140 48 122 62 128 70 134 80 142z" fill="#f1ead6"/><path d="M126 150C142 154 150 140 152 122 138 128 130 134 120 142z" fill="#f1ead6"/>
+<ellipse cx="78" cy="106" rx="8" ry="7" fill="${p[3]}" stroke-width="3"/><ellipse cx="122" cy="106" rx="8" ry="7" fill="${p[3]}" stroke-width="3"/>
+<circle cx="79" cy="107" r="3" fill="${INK}" stroke="none"/><circle cx="121" cy="107" r="3" fill="${INK}" stroke="none"/>
+<path d="M62 94l24 8M138 94l-24 8" stroke-width="6" fill="none"/>`),
+
+skeleton:(p)=>svg(`${SH}
+${limb('M100 112V178',7,p[2])}
+${limb('M70 126q30 14 60 0',6,p[2])}${limb('M72 144q28 12 56 0',6,p[2])}${limb('M76 162q24 10 48 0',6,p[2])}
+${limb('M58 118q42-14 84 0',8,p[2])}
+${limb('M132 126L154 148',7,p[2])}
+<path d="M154 140L174 62 182 64 164 144z" fill="#cfd2d6"/><path d="M148 144l22-4" stroke="${p[1]}" stroke-width="6" fill="none"/>
+<path d="M62 78C60 46 80 28 100 28s40 18 38 50c0 14-8 20-12 24v14H74V102c-4-4-12-10-12-24z" fill="${p[2]}"/>
+<ellipse cx="84" cy="76" rx="11" ry="13" fill="${INK}"/><ellipse cx="116" cy="76" rx="11" ry="13" fill="${INK}"/>
+${glow(86,78,9,p[3])}<circle cx="86" cy="78" r="3.5" fill="${p[3]}" stroke="none"/>${glow(118,78,9,p[3])}<circle cx="118" cy="78" r="3.5" fill="${p[3]}" stroke="none"/>
+<path d="M100 90l-6 12h12z" fill="${INK}"/><path d="M82 116v-14M91 116v-14M100 116v-14M109 116v-14M118 116v-14" stroke-width="3" fill="none"/>`),
+
+treant:(p,o={})=>svg(`${SH}
+${limb('M70 176q-20 4-38 0',9,p[1])}${limb('M130 176q20 4 38 0',9,p[1])}
+${limb('M70 84Q40 74 26 46',11,p[0])}${limb('M130 84Q160 74 174 46',11,p[0])}
+<path d="M64 178C76 144 72 112 68 86C64 58 78 42 100 42S136 58 132 86C128 112 124 144 136 178Z" fill="${p[0]}"/>
+<path d="M84 60q-6 40 0 80M116 60q6 40 0 80" fill="none" stroke="${p[1]}" stroke-width="3" opacity=".7"/>
+<circle cx="26" cy="40" r="18" fill="${p[2]}"/><circle cx="12" cy="58" r="12" fill="${p[2]}"/><circle cx="174" cy="40" r="18" fill="${p[2]}"/><circle cx="188" cy="58" r="12" fill="${p[2]}"/>
+<circle cx="100" cy="34" r="22" fill="${p[2]}"/><circle cx="74" cy="42" r="15" fill="${p[2]}"/><circle cx="126" cy="42" r="15" fill="${p[2]}"/>
+${o.antlers?`${limb('M82 42L70 12M70 12L56 18M70 12L72 0',5,p[1])}${limb('M118 42L130 12M130 12L144 18M130 12L128 0',5,p[1])}`:''}
+${glow(86,102,12,p[3])}${glow(114,102,12,p[3])}
+<path d="M76 96l18 6-18 8z" fill="${p[3]}" stroke-width="3"/><path d="M124 96l-18 6 18 8z" fill="${p[3]}" stroke-width="3"/>
+<path d="M84 134q16 12 32 0q-4 18-16 18t-16-18z" fill="${INK}"/>`),
+
+wolf:(p,o={})=>svg(`${SH}
+<path d="M46 34L80 84 50 102z" fill="${p[0]}"/><path d="M154 34L120 84 150 102z" fill="${p[0]}"/>
+<path d="M54 52L72 82 58 90z" fill="${p[1]}" stroke="none"/><path d="M146 52L128 82 142 90z" fill="${p[1]}" stroke="none"/>
+<path d="M44 104C44 84 60 76 80 76 90 70 110 70 120 76 140 76 156 84 156 104 156 140 132 172 100 180 68 172 44 140 44 104z" fill="${p[0]}"/>
+<path d="M46 118l-14 6 12 4-8 10 18-4z" fill="${p[0]}"/><path d="M154 118l14 6-12 4 8 10-18-4z" fill="${p[0]}"/>
+<path d="M100 94C84 100 76 124 78 142 84 164 116 164 122 142 124 124 116 100 100 94z" fill="${p[2]}"/>
+<path d="M90 134q10-8 20 0l-10 12z" fill="${INK}"/>
+<path d="M100 146v10M84 158q16 12 32 0" fill="none"/>
+<path d="M88 158l4 14 6-12zM112 158l-4 14-6-12z" fill="#f1ead6" stroke-width="2.5"/>
+${glow(76,106,12,p[3])}${glow(124,106,12,p[3])}
+<path d="M62 98l28 8-4 12-26-6z" fill="${p[3]}" stroke-width="3"/><path d="M138 98l-28 8 4 12 26-6z" fill="${p[3]}" stroke-width="3"/>
+<rect x="73" y="104" width="4" height="9" fill="${INK}" stroke="none"/><rect x="123" y="104" width="4" height="9" fill="${INK}" stroke="none"/>
+${o.fire?`${flame(76,78,1.6,p[3])}${flame(100,72,2,p[2])}${flame(124,78,1.6,p[3])}`:''}`),
+
+spider:(p,o={})=>{
+  const L=['M88 96Q50 56 22 74','M86 106Q38 96 14 118','M88 118Q42 130 22 162','M92 128Q64 152 52 186'];
+  const left=L.map(d=>limb(d,7,p[1])).join('');
+  return svg(`${SH}${left}<g transform="translate(200 0) scale(-1 1)">${left}</g>
+<ellipse cx="100" cy="134" rx="34" ry="38" fill="${p[0]}"/>
+<path d="M100 108l11 15-11 15-11-15z" fill="${p[3]}" stroke-width="3"/>
+<ellipse cx="100" cy="88" rx="25" ry="21" fill="${p[1]}"/>
+${[[88,82,5],[112,82,5],[80,92,4],[120,92,4],[96,76,3.5],[104,76,3.5]].map(e=>`<circle cx="${e[0]}" cy="${e[1]}" r="${e[2]}" fill="${p[3]}" stroke-width="2.5"/>`).join('')}
+<path d="M90 104l-5 15 9-9zM110 104l5 15-9-9z" fill="#f1ead6" stroke-width="2.5"/>
+${o.crown?`<path d="M78 70L80 46 92 58 100 40 108 58 120 46 122 70z" fill="${p[3]}"/><circle cx="100" cy="56" r="3.5" fill="#c4412d" stroke-width="2"/>`:''}`);},
+
+scorpion:(p)=>svg(`${SH}
+${limb('M100 140C152 152 178 110 160 70C152 52 130 48 118 60',13,p[0])}
+<path d="M122 58l-18-10 4 24z" fill="${p[3]}" stroke-width="3"/>
+${limb('M82 122Q54 110 46 88',10,p[0])}${limb('M118 124Q140 118 148 100',8,p[1])}
+<path d="M24 78C20 54 46 44 60 62 50 62 44 70 46 88z" fill="${p[0]}"/><path d="M52 98C56 78 76 70 82 82 74 86 70 94 72 106z" fill="${p[1]}"/>
+${[[74,152,50,172],[78,160,56,184],[126,152,150,172],[122,160,144,184]].map(l=>limb(`M${l[0]} ${l[1]}L${l[2]} ${l[3]}`,4,p[1])).join('')}
+<ellipse cx="100" cy="142" rx="34" ry="28" fill="${p[0]}"/>
+<path d="M70 142q30 12 60 0M76 128q24 8 48 0" fill="none" stroke="${p[1]}" stroke-width="3"/>
+<ellipse cx="100" cy="114" rx="22" ry="16" fill="${p[1]}"/>
+<circle cx="92" cy="110" r="4.5" fill="${p[3]}" stroke-width="2.5"/><circle cx="108" cy="110" r="4.5" fill="${p[3]}" stroke-width="2.5"/>`),
+
+golem:(p)=>svg(`${SH}
+<path d="M62 180V150h30v30zM108 180V150h30v30z" fill="${p[1]}"/>
+<path d="M50 152L44 100 66 76h68l22 24-6 52z" fill="${p[0]}"/>
+<path d="M44 100L22 126 26 164 54 158 58 120z" fill="${p[1]}"/><path d="M156 100l22 26-4 38-28-6-4-38z" fill="${p[1]}"/>
+<path d="M66 76l20 30M134 76l-20 30" stroke="${p[1]}" stroke-width="3" fill="none" opacity=".7"/>
+<path d="M72 78V52l12-14h32l12 14v26z" fill="${p[0]}"/>
+${glow(88,60,11,p[3])}${glow(112,60,11,p[3])}
+<rect x="80" y="55" width="14" height="9" fill="${p[3]}" stroke-width="3"/><rect x="106" y="55" width="14" height="9" fill="${p[3]}" stroke-width="3"/>
+${glow(100,120,22,p[3])}<circle cx="100" cy="120" r="13" fill="${p[3]}" stroke-width="3"/>
+<path d="M100 106L92 90M100 134l8 12M114 120l16 4M86 120l-14 6" stroke-width="3" fill="none"/>
+<path d="M34 144l12 2M164 144l-12 2" stroke="${p[2]}" stroke-width="3" fill="none"/>`),
+
+knight:(p,o={})=>svg(`${SH}
+${o.plume?`<path d="M100 18C78 8 64 22 72 44l28-8 28 8c8-22-6-36-28-26z" fill="${p[3]}"/>`:''}
+<path d="M44 180L48 124C48 104 64 94 80 92h40c16 2 32 12 32 32l4 56z" fill="${p[0]}"/>
+<ellipse cx="46" cy="120" rx="22" ry="18" fill="${p[0]}"/><ellipse cx="154" cy="120" rx="22" ry="18" fill="${p[0]}"/>
+<path d="M100 112l14 10v18l-14 12-14-12v-18z" fill="${p[2]}"/>
+<path d="M16 116h40v34c0 16-12 26-20 30-8-4-20-14-20-30z" fill="${p[1]}"/><circle cx="36" cy="140" r="8" fill="${p[3]}" stroke-width="3"/>
+<path d="M170 70l7 10v78h-14V80z" fill="#d7dade"/><rect x="154" y="152" width="32" height="8" rx="2" fill="${p[3]}"/><rect x="165" y="160" width="8" height="18" fill="${p[1]}"/>
+<path d="M66 90V62C66 40 82 28 100 28s34 12 34 34v28c0 6-4 10-10 10H76c-6 0-10-4-10-10z" fill="${p[0]}"/>
+<path d="M72 62h56v14H72z" fill="${INK}"/>${glow(100,69,16,p[3])}<path d="M78 69h44" stroke="${p[3]}" stroke-width="4" fill="none"/>
+<path d="M100 28v32" stroke="${p[1]}" stroke-width="5" fill="none"/>`),
+
+pharaoh:(p)=>svg(`${SH}
+<path d="M50 180L38 92C38 42 68 16 100 16s62 26 62 76l-12 88z" fill="${p[2]}"/>
+<path d="M54 60l-8 120M70 40l-14 140M130 40l14 140M146 60l8 120" stroke="${p[0]}" stroke-width="6" fill="none"/>
+<path d="M50 180q50-30 100 0l-8-26q-42-20-84 0z" fill="${p[0]}"/><path d="M62 170q38-18 76 0" stroke="${p[2]}" stroke-width="5" fill="none"/>
+<path d="M72 60h56v68c0 22-14 36-28 36s-28-14-28-36z" fill="#d6a05a"/>
+<path d="M68 52h64v14H68z" fill="${p[0]}"/><path d="M100 26c-9 5-9 18 0 26 9-8 9-21 0-26z" fill="${p[3]}" stroke-width="3"/>
+<path d="M74 88h24M102 88h24" stroke-width="7" fill="none"/>${glow(88,89,11,p[3])}${glow(112,89,11,p[3])}<circle cx="88" cy="89" r="4" fill="${p[3]}" stroke="none"/><circle cx="112" cy="89" r="4" fill="${p[3]}" stroke="none"/>
+<path d="M100 94l-6 18h12z" fill="none" stroke-width="3"/><path d="M86 130h28" stroke-width="4" fill="none"/>
+<path d="M92 164h16l-4 22h-8z" fill="${p[0]}"/>`),
+
+worm:(p)=>{
+  const R=(n,r1,r2,off,spread)=>Array.from({length:n},(_,i)=>{const a=(i+off)/n*Math.PI*2;const pt=(rr,aa)=>`${(100+Math.cos(aa)*rr).toFixed(1)},${(104+Math.sin(aa)*rr).toFixed(1)}`;return `<polygon points="${pt(r1,a-spread)} ${pt(r2,a)} ${pt(r1,a+spread)}" fill="#f1ead6" stroke-width="2.5"/>`;}).join('');
+  return svg(`<ellipse cx="100" cy="184" rx="78" ry="9" fill="#000" opacity=".3" stroke="none"/>
+<circle cx="100" cy="104" r="84" fill="${p[0]}"/><circle cx="100" cy="104" r="70" fill="${p[1]}"/><circle cx="100" cy="104" r="56" fill="${p[2]}"/>
+<circle cx="100" cy="104" r="48" fill="${INK}"/>${R(18,66,46,0,.13)}${R(12,46,30,.5,.2)}
+<circle cx="100" cy="104" r="16" fill="${p[3]}" opacity=".55" stroke="none"/>
+${[[20,40],[176,60],[28,160],[170,150],[100,14]].map(d=>`<circle cx="${d[0]}" cy="${d[1]}" r="4" fill="${p[2]}" stroke="none"/>`).join('')}`);},
+
+iceking:(p)=>svg(`${SH}
+<path d="M34 182L46 126q54-26 108 0l12 56z" fill="${p[1]}"/>${limb('M46 126q54-26 108 0',12,p[2])}
+<path d="M70 70C70 48 84 38 100 38s30 10 30 32v30c0 22-14 40-30 40S70 122 70 100z" fill="${p[2]}"/>
+<polygon points="72,104 80,150 88,122 94,164 100,128 106,164 112,122 120,150 128,104" fill="${p[0]}"/>
+<path d="M66 64L62 22 82 46 92 12 100 40 108 12 118 46 138 22 134 64z" fill="${p[0]}"/>
+<circle cx="100" cy="50" r="4" fill="${p[3]}" stroke-width="2.5"/><circle cx="80" cy="56" r="3" fill="${p[3]}" stroke-width="2"/><circle cx="120" cy="56" r="3" fill="${p[3]}" stroke-width="2"/>
+${glow(88,88,11,p[3])}${glow(112,88,11,p[3])}
+<path d="M78 84l16 5-16 7z" fill="${p[3]}" stroke-width="3"/><path d="M122 84l-16 5 16 7z" fill="${p[3]}" stroke-width="3"/>
+<path d="M98 94l-4 14h12z" fill="none" stroke-width="3"/>`),
+
+crystal:(p)=>svg(`${SH}
+<polygon points="100,8 130,70 120,152 100,182 80,152 70,70" fill="${p[0]}"/>
+<polygon points="50,58 78,96 70,152 42,128" fill="${p[1]}"/><polygon points="150,58 122,96 130,152 158,128" fill="${p[1]}"/>
+<polygon points="26,112 48,132 36,166" fill="${p[0]}"/><polygon points="174,112 152,132 164,166" fill="${p[0]}"/>
+<path d="M100 8v174M70 70h60" stroke="${p[2]}" stroke-width="3" fill="none" opacity=".7"/>
+${glow(88,92,12,p[3])}${glow(112,92,12,p[3])}
+<path d="M82 86l14 6-14 8z" fill="${p[3]}" stroke-width="3"/><path d="M118 86l-14 6 14 8z" fill="${p[3]}" stroke-width="3"/>
+<path d="M90 128q10 8 20 0" fill="none"/>
+${[[30,40],[170,30],[16,90],[184,96]].map(d=>`<circle cx="${d[0]}" cy="${d[1]}" r="3.5" fill="#fff" stroke="none"/>`).join('')}`),
+
+demon:(p)=>svg(`${SH}
+${flame(36,170,2,p[2])}${flame(164,170,2,p[2])}${flame(58,120,1.5,p[3])}${flame(142,120,1.5,p[3])}${flame(100,60,1.8,p[2])}
+<path d="M64 84C28 74 22 38 40 12 46 40 66 54 86 58z" fill="${p[1]}"/><path d="M136 84C172 74 178 38 160 12 154 40 134 54 114 58z" fill="${p[1]}"/>
+<path d="M62 86c0-26 16-42 38-42s38 16 38 42v30c0 28-16 54-38 54S62 144 62 116z" fill="${p[0]}"/>
+<path d="M66 84l34 14 34-14" fill="none" stroke="${p[1]}" stroke-width="8"/>
+${glow(84,102,13,p[3])}${glow(116,102,13,p[3])}
+<path d="M72 98l24 6-24 11z" fill="${p[3]}" stroke-width="3"/><path d="M128 98l-24 6 24 11z" fill="${p[3]}" stroke-width="3"/>
+<path d="M92 126l-3 6M108 126l3 6" stroke-width="3" fill="none"/>
+<path d="M76 142q24 16 48 0 0 20-24 20t-24-20z" fill="${INK}"/><path d="M82 142l4 14 6-12zM118 142l-4 14-6-12z" fill="#f1ead6" stroke-width="2.5"/>`),
+
+dragon:(p)=>svg(`${SH}
+<path d="M60 92L4 38 20 100 2 132 46 122 60 144z" fill="${p[1]}"/><path d="M140 92L196 38 180 100 198 132 154 122 140 144z" fill="${p[1]}"/>
+<path d="M70 54L50 6 86 42z" fill="${p[2]}"/><path d="M130 54L150 6 114 42z" fill="${p[2]}"/><path d="M58 76L36 58 64 92z" fill="${p[2]}"/><path d="M142 76L164 58 136 92z" fill="${p[2]}"/>
+<path d="M56 82C56 54 76 40 100 40s44 14 44 42c0 14-4 24-8 30l-6 40c-4 20-16 30-30 30s-26-10-30-30l-6-40c-4-6-8-16-8-30z" fill="${p[0]}"/>
+<path d="M82 62q9 9 18 0q9 9 18 0" fill="none" stroke="${p[1]}" stroke-width="3"/>
+<path d="M78 120h44l-4 40c-2 12-10 18-18 18s-16-6-18-18z" fill="${p[2]}"/>
+<ellipse cx="91" cy="136" rx="4" ry="6" fill="${INK}" stroke="none"/><ellipse cx="109" cy="136" rx="4" ry="6" fill="${INK}" stroke="none"/>
+${glow(76,90,14,p[3])}${glow(124,90,14,p[3])}
+<path d="M62 88Q76 76 92 92Q76 100 62 88z" fill="${p[3]}" stroke-width="3"/><path d="M138 88Q124 76 108 92Q124 100 138 88z" fill="${p[3]}" stroke-width="3"/>
+<rect x="75" y="82" width="4" height="14" fill="${INK}" stroke="none"/><rect x="121" y="82" width="4" height="14" fill="${INK}" stroke="none"/>
+<path d="M86 172l3 14 6-12zM114 172l-3 14-6-12z" fill="#f1ead6" stroke-width="2.5"/>
+<circle cx="86" cy="150" r="5" fill="#8a8a8a" opacity=".45" stroke="none"/><circle cx="114" cy="150" r="5" fill="#8a8a8a" opacity=".45" stroke="none"/>`),
+
+phoenix:(p)=>svg(`${SH}
+<path d="M100 112L26 58 48 120 18 152 72 142 100 176z" fill="${p[0]}"/><path d="M100 112L174 58 152 120 182 152 128 142 100 176z" fill="${p[0]}"/>
+${flame(100,184,2,p[3])}${flame(78,176,1.4,p[2])}${flame(122,176,1.4,p[2])}
+<ellipse cx="100" cy="116" rx="24" ry="38" fill="${p[1]}"/><circle cx="100" cy="72" r="19" fill="${p[1]}"/>
+${flame(100,56,1.5,p[3])}${flame(88,58,1,p[2])}${flame(112,58,1,p[2])}
+<path d="M100 74l-9 10h18z" fill="${p[3]}" stroke-width="3"/><circle cx="92" cy="68" r="3.5" fill="${INK}" stroke="none"/><circle cx="108" cy="68" r="3.5" fill="${INK}" stroke="none"/>`)
+};
+
+const SC={};
+const tree=(x,y,s,c)=>`<rect x="${x-3*s}" y="${y-20*s}" width="${6*s}" height="${20*s}" fill="#3a2716"/><circle cx="${x}" cy="${y-32*s}" r="${18*s}" fill="${c}"/><circle cx="${x-10*s}" cy="${y-24*s}" r="${12*s}" fill="${c}"/><circle cx="${x+11*s}" cy="${y-25*s}" r="${12*s}" fill="${c}"/>`;
+const pine=(x,y,s,c)=>`<polygon points="${x},${y-80*s} ${x+22*s},${y-40*s} ${x+12*s},${y-40*s} ${x+30*s},${y-10*s} ${x+16*s},${y-10*s} ${x+34*s},${y} ${x-34*s},${y} ${x-16*s},${y-10*s} ${x-30*s},${y-10*s} ${x-12*s},${y-40*s} ${x-22*s},${y-40*s}" fill="${c}"/>`;
+SC.plains=()=>`<rect width="360" height="640" fill="#d89a55"/><rect y="230" width="360" height="410" fill="#e8bd76"/>
+<circle cx="268" cy="300" r="50" fill="#f2d79a"/><circle cx="268" cy="300" r="37" fill="#f9ecc0"/>
+<path d="M0 352Q70 314 140 344T280 330T360 340V640H0z" fill="#a3aa62"/>
+<path d="M0 386Q90 348 180 382T360 366V640H0z" fill="#709046"/>
+<path d="M0 424Q100 394 200 418T360 408V640H0z" fill="#4a6c31"/>
+${tree(48,392,1,'#3e5f2e')}${tree(318,384,.8,'#3e5f2e')}${tree(296,424,1.1,'#355429')}
+<path d="M60 262q10-10 20 0M84 244q8-8 16 0M300 252q8-8 16 0" fill="none" stroke="#5a3b1e" stroke-width="3"/>`;
+SC.forest=()=>`<rect width="360" height="640" fill="#16241f"/><rect y="200" width="360" height="440" fill="#1f342b"/>
+<circle cx="92" cy="292" r="34" fill="#dfe6c8"/><circle cx="80" cy="284" r="7" fill="#c5cfae"/><circle cx="102" cy="304" r="5" fill="#c5cfae"/>
+${[20,70,130,200,260,320,356].map(x=>pine(x,388,.9,'#12201a')).join('')}
+${[0,52,112,172,240,300,350].map(x=>pine(x,430,1.3,'#0d1914')).join('')}
+<path d="M0 436Q90 416 180 434T360 426V640H0z" fill="#0a130f"/><rect y="384" width="360" height="26" fill="#c8d8c0" opacity=".08"/>`;
+SC.desert=()=>`<rect width="360" height="640" fill="#e0a65a"/><rect y="220" width="360" height="420" fill="#f0c680"/>
+<circle cx="96" cy="296" r="56" fill="#f6dd9f"/><circle cx="96" cy="296" r="42" fill="#fbeab8"/>
+<polygon points="248,364 300,292 352,364" fill="#b97d3c"/><polygon points="300,292 352,364 300,364" fill="#9a6428"/>
+<path d="M0 362Q90 332 170 358T360 346V640H0z" fill="#d9a05a"/><path d="M0 398Q110 362 210 394T360 386V640H0z" fill="#c68a45"/><path d="M0 438Q100 412 200 434T360 426V640H0z" fill="#a8702f"/>
+<g fill="#4f6b2f"><rect x="42" y="372" width="12" height="46" rx="6"/><rect x="28" y="384" width="9" height="24" rx="4"/><rect x="58" y="380" width="9" height="20" rx="4"/></g>`;
+SC.ice=()=>`<rect width="360" height="640" fill="#1c3647"/><rect y="220" width="360" height="420" fill="#2b5368"/>
+<path d="M0 150Q120 90 220 150T360 120V210Q250 170 160 210T0 190z" fill="#6ee0b8" opacity=".28"/><path d="M0 230Q140 180 240 240T360 210V270Q240 230 140 272T0 260z" fill="#7fd0ff" opacity=".22"/>
+${[[40,60],[120,110],[210,40],[300,90],[330,170],[70,180]].map(d=>`<circle cx="${d[0]}" cy="${d[1]}" r="2" fill="#fff"/>`).join('')}
+<polygon points="-10,410 90,292 160,384 232,272 332,384 380,332 380,420 -10,420" fill="#a9c8d6"/>
+<polygon points="72,312 90,292 108,312 98,306 90,316 80,306" fill="#fff"/><polygon points="214,292 232,272 250,292 240,286 232,296 222,286" fill="#fff"/>
+<path d="M0 410Q90 392 180 408T360 400V640H0z" fill="#dfeef4"/><path d="M0 450Q100 430 200 448T360 440V640H0z" fill="#c1d9e4"/>
+${[[50,470],[140,520],[260,490],[320,560],[90,580]].map(d=>`<circle cx="${d[0]}" cy="${d[1]}" r="3" fill="#fff"/>`).join('')}`;
+SC.volcano=()=>`<rect width="360" height="640" fill="#2a0f0c"/><rect y="240" width="360" height="400" fill="#5a1d10"/><rect y="330" width="360" height="310" fill="#8a2c12"/>
+<circle cx="190" cy="320" r="120" fill="#f08a2a" opacity=".25"/>
+<circle cx="170" cy="240" r="26" fill="#3b2622" opacity=".7"/><circle cx="200" cy="214" r="32" fill="#3b2622" opacity=".6"/><circle cx="236" cy="190" r="26" fill="#3b2622" opacity=".5"/>
+<polygon points="30,436 150,306 172,282 208,282 230,306 350,436" fill="#1d0e0b"/>
+<polygon points="172,282 208,282 218,292 162,292" fill="#ffb13b"/>
+<path d="M192 292L182 330 198 362 186 402 202 436" fill="none" stroke="#f08a2a" stroke-width="6"/>
+<path d="M0 436Q100 416 200 434T360 426V640H0z" fill="#1a0b09"/><path d="M0 480Q90 466 200 480T360 472V640H0z" fill="#0f0605"/>
+<path d="M60 530l30 14 20-10 40 20M240 520l24 16 30-8" fill="none" stroke="#f08a2a" stroke-width="3"/>
+${[[80,300],[300,330],[140,260],[250,250],[40,400],[330,420]].map(d=>`<circle cx="${d[0]}" cy="${d[1]}" r="2.5" fill="#ffb13b"/>`).join('')}`;
+const scene=(id,mode)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${mode==='ban'?'0 250 360 190':'0 0 360 640'}" preserveAspectRatio="xMidYMid slice">${SC[id]()}</svg>`;
+
+const COL={stone:'#a79f90',common:'#b9b3a3',iron:'#9aa1a8',steel:'#7fb0cb',epic:'#e8832a',divine:'#f0cf6a'};
+const RN={stone:'Каменный',common:'Обычный',iron:'Железный',steel:'Редкий',epic:'Эпический',divine:'Божественный'};
+const isvg=b=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">${b}</g></svg>`;
+const ICONS={
+ weapon:(c,k)=>{const hd=(x1,y1,x2,y2)=>`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${INK}" stroke-width="10" fill="none"/><path d="M${x1} ${y1}L${x2} ${y2}" stroke="#7a4a22" stroke-width="5" fill="none"/>`;
+  if(k==='axe')return isvg(`${hd(12,56,40,20)}<path d="M34 10Q56 4 60 26Q48 28 40 38Q36 24 34 10z" fill="${c}"/><path d="M40 16Q50 14 54 22" fill="none" stroke-width="2" opacity=".5"/>`);
+  if(k==='mace')return isvg(`${hd(12,56,36,30)}<circle cx="44" cy="20" r="13" fill="${c}"/><path d="M44 3v6M44 31v6M27 20h6M55 20h6M32 8l4 4M56 8l-4 4M32 32l4-4M56 32l-4-4" stroke-width="4" fill="none"/>`);
+  if(k==='spear')return isvg(`${hd(8,58,46,18)}<path d="M42 24L56 4 62 10 50 28z" fill="${c}"/>`);
+  if(k==='cleaver')return isvg(`<path d="M24 44L36 8 60 14 52 46z" fill="${c}"/><path d="M36 14L56 18" stroke-width="2" fill="none" opacity=".5"/>${hd(10,58,28,40)}`);
+  return isvg(`<path d="M52 6l6 6-28 32-10-10z" fill="${c}"/><path d="M12 38l14 14" stroke="${INK}" stroke-width="10" fill="none"/><path d="M12 38l14 14" stroke="#e0b552" stroke-width="5" fill="none"/><path d="M18 46L8 56" stroke="${INK}" stroke-width="9" fill="none"/><path d="M18 46L8 56" stroke="#7a4a22" stroke-width="5" fill="none"/>`);},
+ armor:c=>isvg(`<path d="M14 14l18-8 18 8 8 12-12 8v24H18V34L6 26z" fill="${c}"/><path d="M32 6v46M22 28h20" fill="none" stroke-width="2" opacity=".6"/>`),
+ potion:c=>isvg(`<rect x="26" y="5" width="12" height="7" fill="#7a4a22"/><path d="M27 12h10v12l13 22a8 8 0 01-7 12H21a8 8 0 01-7-12l13-22z" fill="#cfe3e8"/><path d="M19 40h26l5 8a8 8 0 01-7 10H21a8 8 0 01-7-10z" fill="#c4412d"/>`),
+ shard:c=>isvg(`<path d="M32 5l17 21-17 33L15 26z" fill="#8fe0d4"/><path d="M32 5v54M15 26h34" fill="none" stroke-width="2" opacity=".6"/>`)
+};
+const chestSvg=c=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100"><g stroke="${INK}" stroke-width="4" stroke-linejoin="round"><path d="M12 44h96v46H12z" fill="#6b4526"/><rect x="26" y="44" width="10" height="46" fill="${c}"/><rect x="84" y="44" width="10" height="46" fill="${c}"/><g class="lid"><path d="M12 44C12 18 30 8 60 8s48 10 48 36z" fill="#7d5230"/><rect x="26" y="10" width="10" height="34" fill="${c}"/><rect x="84" y="10" width="10" height="34" fill="${c}"/></g><rect x="50" y="42" width="20" height="22" rx="3" fill="#e0b552"/><circle cx="60" cy="52" r="3" fill="${INK}"/></g></svg>`;
+
+const ICON={
+ map:'<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
+ hero:'<svg viewBox="0 0 24 24"><path d="M5 15V9a7 7 0 0114 0v6l-2 5H7z"/><path d="M8 12h8"/></svg>',
+ bag:'<svg viewBox="0 0 24 24"><path d="M6 8h12l2 13H4z"/><path d="M9 8a3 3 0 016 0"/></svg>',
+ shop:'<svg viewBox="0 0 24 24"><path d="M3 10l2-6h14l2 6"/><path d="M4 10v10h16V10"/><path d="M9 20v-6h6v6"/></svg>',
+ scroll:'<svg viewBox="0 0 24 24"><path d="M6 3h12v15a3 3 0 003 3H9a3 3 0 01-3-3z"/><path d="M9 8h6M9 12h6"/></svg>',
+ back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+ lock:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" fill="#e8dcc0" stroke="#0c0907" stroke-width="2"/><path d="M8 11V8a4 4 0 018 0v3" fill="none" stroke="#e8dcc0" stroke-width="3"/></svg>',
+ coin:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#e0b552" stroke="#0c0907" stroke-width="2"/><path d="M12 7v10M9 9.5h4.5a2 2 0 010 4H9" fill="none" stroke="#0c0907" stroke-width="2"/></svg>',
+ shield:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" fill="#7fb7cf" stroke="#0c0907" stroke-width="2"/></svg>',
+ potion:'<svg viewBox="0 0 24 24"><rect x="9.5" y="2" width="5" height="3" fill="#7a4a22" stroke="#0c0907" stroke-width="1.5"/><path d="M10 5h4v5l5 8a3 3 0 01-2.6 4.5H7.6A3 3 0 015 18l5-8z" fill="#c4412d" stroke="#0c0907" stroke-width="1.8" stroke-linejoin="round"/></svg>'
+};
+
+const ITEMS={
+ 'Зелье лечения':{t:'potion',r:'common',price:90,d:'Лечит в бою: 40 HP или 30% здоровья. Перезарядка 10 с.'},
+ 'Каменный меч':{t:'weapon',k:'sword',b:12,r:'stone',price:150},
+ 'Каменный топор':{t:'weapon',k:'axe',b:18,r:'stone',price:260},
+ 'Каменная булава':{t:'weapon',k:'mace',b:26,r:'stone',price:380},
+ 'Каменное копьё':{t:'weapon',k:'spear',b:34,r:'stone',price:520},
+ 'Каменный тесак':{t:'weapon',k:'cleaver',b:44,r:'stone',price:700},
+ 'Кожаная броня':{t:'armor',b:5,r:'common',price:140},
+ 'Железный меч':{t:'weapon',k:'sword',b:60,r:'iron',price:1200},
+ 'Железная броня':{t:'armor',b:10,r:'iron',price:1400},
+ 'Стальной меч':{t:'weapon',k:'sword',b:95,r:'steel',price:3200},
+ 'Эпическая броня':{t:'armor',b:30,r:'epic',price:9000,sell:2500,d:'Очень редкая добыча: босс, сундук за ★.'},
+ 'Эпический клинок':{t:'weapon',k:'sword',b:180,r:'epic',price:12000,sell:3500,d:'Очень редкая добыча: босс, сундук за ★.'},
+ 'Божественный меч':{t:'weapon',k:'sword',b:450,r:'divine',price:0,sell:12000,d:'Почти не выпадает с боссов. Основной путь — сундук за ★.'},
+ 'Божественная броня':{t:'armor',b:75,r:'divine',price:0,sell:10000,d:'Почти не выпадает с боссов. Основной путь — сундук за ★.'}
+};
+const SHOP=['Зелье лечения','Каменный меч'];
+const HIT_DROPS=[['Зелье лечения',40],['Каменный меч',18],['Каменный топор',12],['Каменная булава',9],['Каменное копьё',7],['Каменный тесак',4],['Кожаная броня',6],['Железный меч',4]];
+const MOB_DROPS=[['Зелье лечения',40],['Каменный меч',20],['Каменный топор',16],['Кожаная броня',12],['Каменная булава',8],['Каменное копьё',4]];
+const BOSS_DROPS=[['Зелье лечения',20],['Каменная булава',14],['Каменное копьё',14],['Каменный тесак',10],['Железный меч',14],['Железная броня',10],['Стальной меч',8],['Кожаная броня',10]];
+const CHESTS=[
+ {n:'Обычный сундук',stars:10,c:'#9aa1a8',d:[['Зелье лечения',28],['Каменный меч',16],['Каменный топор',14],['Каменная булава',11],['Каменное копьё',9],['Кожаная броня',10],['Железный меч',8],['Стальной меч',3.6],['Эпический клинок',.2],['Эпическая броня',.2]]},
+ {n:'Улучшенный сундук',stars:25,c:'#7fb0cb',d:[['Зелье лечения',10],['Каменный тесак',16],['Железный меч',20],['Стальной меч',26],['Железная броня',25],['Эпический клинок',1],['Эпическая броня',1],['Божественный меч',.5],['Божественная броня',.5]]},
+ {n:'Эпический сундук',stars:50,c:'#e8832a',d:[['Зелье лечения',6],['Каменный тесак',12],['Железный меч',22],['Стальной меч',32],['Железная броня',25],['Эпический клинок',1],['Эпическая броня',1],['Божественный меч',.5],['Божественная броня',.5]]},
+ {n:'Легендарный сундук',stars:100,c:'#f0cf6a',d:[['Зелье лечения',4],['Каменный тесак',8],['Железный меч',20],['Стальной меч',40],['Железная броня',24],['Эпический клинок',1],['Эпическая броня',1],['Божественный меч',1],['Божественная броня',1]]}
+];
+
+const G=['#86b04e','#4a6f2b','#cfe59a','#f2d34a'];
+const WORLDS=[
+{id:'plains',n:'Зелёные равнины',req:1,t:'Тихие холмы, с которых начинают все герои.',enemies:[
+ {n:'Слизень',rl:1,coins:[8,16],spr:'slime',pal:G},
+ {n:'Лесная пешка',rl:2,coins:[12,22],spr:'minion',pal:['#5d6b3a','#34401f','#8d9a5c','#e8d46a']},
+ {n:'Дикий кабан',rl:3,coins:[15,28],spr:'boar',pal:['#8a5a3a','#4f2f1c','#d9a77f','#f2d34a']},
+ {n:'Скелет-разведчик',rl:5,coins:[18,35],spr:'skeleton',pal:['#bfb59a','#6a634f','#e9e0c6','#7ee08a']},
+ {n:'Король слизней',rl:7,boss:1,coins:[100,180],spr:'slime',opt:{crown:1},pal:['#4f9f62','#2c6a3d','#a6e0b0','#e0b552']},
+ {n:'Древний энт',rl:9,boss:1,coins:[150,240],spr:'treant',pal:['#6b4a2a','#3b2615','#8fb062','#f0c24a']}]},
+{id:'forest',n:'Тёмный лес',req:5,t:'Здесь даже днём слышно, как кто-то дышит за спиной.',enemies:[
+ {n:'Лесной волк',rl:6,coins:[20,38],spr:'wolf',pal:['#6b6f78','#363a42','#c9ccd2','#f0c24a']},
+ {n:'Ожившее дерево',rl:7,coins:[25,45],spr:'treant',pal:['#4a3a28','#2a2016','#4f7a3a','#c4ee6a']},
+ {n:'Тёмная пешка',rl:8,coins:[30,52],spr:'minion',pal:['#2f4a44','#16241f','#5b7f76','#8ff0c0']},
+ {n:'Паук-палач',rl:10,coins:[35,60],spr:'spider',pal:['#3b2a26','#1c1412','#6a4a3c','#e8503a']},
+ {n:'Владыка леса',rl:13,boss:1,coins:[220,360],spr:'treant',opt:{antlers:1},pal:['#2f3b24','#161d10','#5f8a3a','#e0f060']},
+ {n:'Королева пауков',rl:15,boss:1,coins:[280,430],spr:'spider',opt:{crown:1},pal:['#4a2a34','#1f1118','#8a5568','#f0c24a']}]},
+{id:'desert',n:'Пустыня',req:10,t:'Песок помнит всех, кто сюда пришёл. И всех, кто не ушёл.',enemies:[
+ {n:'Песчаный скорпион',rl:11,coins:[35,60],spr:'scorpion',pal:['#c68a45','#7a4f22','#f0c477','#e8503a']},
+ {n:'Пустынная пешка',rl:12,coins:[40,70],spr:'minion',pal:['#c9a063','#7d5b2c','#ecd09a','#e8503a']},
+ {n:'Песчаный голем',rl:13,coins:[50,85],spr:'golem',pal:['#c0975c','#7c5b30','#e6c88c','#ffb13b']},
+ {n:'Проклятый фараон',rl:16,boss:1,coins:[400,650],spr:'pharaoh',pal:['#2f6f8f','#14384a','#e0b552','#7ee0d0']},
+ {n:'Пожиратель дюн',rl:18,boss:1,coins:[500,800],spr:'worm',pal:['#c68a45','#6a431b','#f0c477','#e8503a']}]},
+{id:'ice',n:'Ледяные земли',req:16,t:'Ветер режет сильнее клинка.',enemies:[
+ {n:'Ледяная пешка',rl:17,coins:[45,75],spr:'minion',pal:['#7fb7cf','#2f5f78','#d8f0f8','#bff4ff']},
+ {n:'Снежный волк',rl:18,coins:[55,90],spr:'wolf',pal:['#dfe8ee','#8aa0b0','#ffffff','#7fd6ff']},
+ {n:'Ледяной рыцарь',rl:19,coins:[65,105],spr:'knight',pal:['#8fb4c9','#3d6278','#dff1fa','#7fd6ff']},
+ {n:'Ледяной король',rl:22,boss:1,coins:[650,1000],spr:'iceking',pal:['#9ccbe0','#2f5f78','#e8f8ff','#7fd6ff']},
+ {n:'Вечная стужа',rl:24,boss:1,coins:[800,1200],spr:'crystal',pal:['#7fd0e8','#2a6a86','#e0faff','#ffffff']}]},
+{id:'volcano',n:'Вулкан',req:24,t:'Земля здесь горячая, а враги ещё горячее.',enemies:[
+ {n:'Огненная пешка',rl:25,coins:[70,115],spr:'minion',opt:{fire:1},pal:['#b8381a','#5a140a','#f08a2a','#ffd23a']},
+ {n:'Лавовый волк',rl:26,coins:[85,135],spr:'wolf',opt:{fire:1},pal:['#4a2a22','#1f100c','#c25a2a','#ffb13b']},
+ {n:'Пламенный страж',rl:27,coins:[100,160],spr:'knight',pal:['#3a2a28','#150d0c','#c25a2a','#ffb13b']},
+ {n:'Повелитель вулкана',rl:30,boss:1,coins:[1000,1500],spr:'demon',pal:['#a42a18','#4a0f08','#f08a2a','#ffd23a']},
+ {n:'Древний дракон',rl:33,boss:1,coins:[1300,1900],spr:'dragon',pal:['#3d4a3a','#1a2118','#8a9a5a','#ff8a2a']}]}
+];
+const DUN=[
+ ['Костяной страж','skeleton',['#bfb59a','#6a634f','#e9e0c6','#7ee08a']],['Тень склепа','minion',['#2f3a44','#12181e','#5b6f80','#8ff0c0']],
+ ['Каменный страж','golem',['#8a8f96','#4a4f56','#c2c6cc','#7ee08a']],['Подземный паук','spider',['#3a3a2a','#171710','#6a6a48','#e0f060']],
+ ['Страж врат','knight',['#6f7a86','#2f363e','#b8c2cc','#e8832a'],1],['Гробовая пешка','minion',['#4a3a2a','#1f1812','#7a644a','#e8d46a']],
+ ['Склепный волк','wolf',['#5a5f5a','#2a2d2a','#b0b5b0','#7ee08a']],['Глиняный колосс','golem',['#a0704a','#5a3a22','#d29a70','#ffb13b']],
+ ['Хранитель печати','knight',['#5a3a3a','#241414','#a06a6a','#f0c24a']],['Хозяин подземелья','demon',['#4a1f2a','#1f0a10','#a04a5a','#f0c24a'],1]
+];
+const QUESTS=[
+ {id:'win',t:'Победить 5 врагов',goal:5,coins:90,xp:60},
+ {id:'hit',t:'Нанести 150 ударов',goal:150,coins:60},
+ {id:'coin',t:'Добыть 250 монет в боях',goal:250,item:['Зелье лечения',2]}
+];
+const PETS=[
+ {n:'Волк',spr:'wolf',pal:['#6b6f78','#363a42','#c9ccd2','#f0c24a'],d:'Бьёт сильнее: +8% урона и +2% за уровень питомца.'},
+ {n:'Голем',spr:'golem',pal:['#8a8f96','#4a4f56','#c2c6cc','#7ee08a'],d:'Принимает удары: −5% урона и −1,5% за уровень.'},
+ {n:'Феникс',spr:'phoenix',pal:['#e8832a','#c4412d','#f0c24a','#ffd23a'],d:'Раз за бой возрождает героя с 30% HP (+3% за уровень).'},
+ {n:'Дракончик',spr:'dragon',pal:['#4e9c72','#28583e','#b5edb9','#ffd45e'],d:'Редкий спутник. Эволюционирует каждые 5 побед питомца.'},
+ {n:'Сова',spr:'phoenix',pal:['#a78b69','#574331','#e9d9b8','#f6d16b'],d:'Мудрая сова помогает находить добычу.'},
+ {n:'Призрак',spr:'minion',pal:['#a8c7d8','#526b86','#dcefff','#9cf4ff'],d:'Теневой спутник из древних руин.'},
+ {n:'Мини-голем',spr:'golem',pal:['#9c9a8f','#5d5b52','#d6d1bc','#80d9a1'],d:'Маленький защитник, который крепнет с победами.'}
+];
+const FORGE=[
+ {n:'Зелье лечения',cost:2},{n:'Эпическая броня',cost:20},{n:'Эпический клинок',cost:30}
+];
+/*PURE_END*/
+
+/* ============ состояние ============ */
+const tg=window.Telegram&&window.Telegram.WebApp;
+const KEY='worldx_rpg_v1';
+const CONFIG={invoiceUrl:'',ADMIN_IDS:[]};
+const $=(s,r=document)=>r.querySelector(s);
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const today=()=>new Date().toLocaleDateString('sv');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const W=id=>WORLDS.find(w=>w.id===id);
+const POT='Зелье лечения';
+const DEF=()=>({ts:0,level:1,xp:0,coins:60,points:0,rebirth:0,stats:{str:0,def:0,crit:0,dodge:0},inv:{[POT]:3},equip:{weapon:null,armor:null},pet:{name:null,wins:0},kills:{},wins:0,bosses:0,hits:0,chests:0,shards:0,cases:[0,0,0,0],dunBest:0,dun:{day:'',stage:0},q:{day:'',p:{},c:{}},ach:{},expansion:{sound:true,difficulty:'normal',season:'off',survivalWave:0,pass:0,petFood:3,petHunger:0,apiBase:''}});
+function hydrate(r){const s=Object.assign(DEF(),r||{});for(const k of['stats','equip','pet','dun','q','expansion'])s[k]=Object.assign(DEF()[k],(r&&r[k])||{});return s;}
+let S;
+try{S=hydrate(JSON.parse(localStorage.getItem(KEY)));}catch(e){S=DEF();}
+let NAME='Странник';
+let UI={tab:'map',world:null,shop:'coins',more:'quests'};
+let B=null,BT=null;
+
+let _st;function save(){S.ts=Date.now();clearTimeout(_st);_st=setTimeout(flush,250);}
+function flush(){const j=JSON.stringify(S);try{localStorage.setItem(KEY,j);}catch(e){}try{if(tg&&tg.CloudStorage&&j.length<3900)tg.CloudStorage.setItem(KEY,j,()=>{});}catch(e){}}
+function daily(){const t=today();if(S.q.day!==t)S.q={day:t,p:{},c:{}};if(S.dun.day!==t)S.dun={day:t,stage:0};}
+const qAdd=(id,n)=>{daily();S.q.p[id]=(S.q.p[id]||0)+n;};
+
+/* ============ расчёты ============ */
+const petLvl=()=>Math.min(10,1+Math.floor(S.pet.wins/5));
+function hero(){
+  const lv=S.level,w=S.equip.weapon?ITEMS[S.equip.weapon].b:0,a=S.equip.armor?ITEMS[S.equip.armor].b:0,pl=petLvl(),pn=S.pet.name;
+  const mul=(1+S.rebirth*.1)*(pn==='Волк'?1+(8+2*pl)/100:1);
+  const flat=(lv-1)*12+w+S.stats.str*8;
+  const red=1-(1-a/(a+100))*(1-Math.min(.4,S.stats.def*.02))*(1-(pn==='Голем'?(5+1.5*pl)/100:0));
+  return{maxHp:100+(lv-1)*20,min:Math.round((45+flat)*mul),max:Math.round((65+flat)*mul),flat,mul,crit:Math.min(50,5+S.stats.crit*2),dodge:Math.min(35,S.stats.dodge*2),red,phoenix:pn==='Феникс'?(30+3*pl)/100:0};
+}
+function estats(e){
+  const h=hero(),w=S.equip.weapon?ITEMS[S.equip.weapon].b:0;
+  const noW=(55+(S.level-1)*12+S.stats.str*8)*h.mul;           // удар героя без оружия
+  const ratio=w*h.mul/Math.max(1,noW);                          // насколько оружие усиливает героя
+  const avg=((h.min+h.max)/2)*(1+h.crit/100);                   // средний реальный удар
+  const dps=avg*1.54,dpsNoW=noW*(1+h.crit/100)*1.54;
+  const T=e.boss?26:11;
+  const tF=Math.max(.75,Math.min(1.3,1-.03*(S.level-e.rl)));   // перекачка чуть ускоряет бой, но не обнуляет его
+  const hp=Math.round(T*tF*(dpsNoW+.9*(dps-dpsNoW))/10)*10;     // враг подстраивается под оружие
+  const hpMax=Math.max(100+(e.rl-1)*20,.9*h.maxHp);
+  const dmg=(e.boss?.44:.34)*hpMax/T*(1+Math.min(1,.35*ratio));
+  return{hp,dmg,adapt:hp/Math.max(1,Math.round(T*tF*dpsNoW/10)*10)};
+}
+function gainXp(x){S.xp+=x;let u=0;while(S.xp>=XPN(S.level)){S.xp-=XPN(S.level);S.level++;S.points++;u++;}return u;}
+function wpick(list){const t=list.reduce((a,b)=>a+b[1],0);let r=Math.random()*t;for(const it of list){r-=it[1];if(r<=0)return it[0];}return list[list.length-1][0];}
+const addItem=(n,c=1)=>{S.inv[n]=(S.inv[n]||0)+c;};
+const sellPrice=n=>ITEMS[n].sell||Math.round(ITEMS[n].price*.4);
+const itemIcon=n=>{const it=ITEMS[n];return ICONS[it.t](COL[it.r],it.k);};
+const armorPct=b=>Math.round(b/(b+100)*100);
+
+/* ============ интерфейс-утилиты ============ */
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;$('#toast').appendChild(el);setTimeout(()=>el.remove(),1800);}
+function buzz(t){try{tg&&tg.HapticFeedback&&tg.HapticFeedback.impactOccurred(t||'light');}catch(e){}}
+let audioCtx=null;function playTone(freq=440,dur=.07,type='sine'){if(!S?.expansion?.sound)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime);g.gain.setValueAtTime(.035,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);}catch(e){}}
+function trailFx(){const el=$('#stage');if(!el)return;const t=document.createElement('div');const weapon=S.equip.weapon||'';t.className='weapon-trail '+(/огнен|плам|дракон/i.test(weapon)?'fire':/лед|мороз|кристалл/i.test(weapon)?'ice':'lightning');el.appendChild(t);setTimeout(()=>t.remove(),400);}
+function shakeBattle(){const b=$('#battle');if(!b)return;b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),380);}
+function modal(html,opt={}){const m=$('#modal');m.innerHTML=`<div class="sheet">${html}</div>`;m.className='modal'+(opt.mid?' mid':'');m.onclick=opt.lock?null:ev=>{if(ev.target===m)closeModal();};}
+function closeModal(){$('#modal').className='modal hidden';$('#modal').innerHTML='';}
+function hud(){daily();$('#lvl').textContent=S.level;$('#coins').textContent=fmt(S.coins);$('#xpf').style.width=(S.xp/(XPN(S.level))*100)+'%';$('#xptxt').textContent=`${fmt(S.xp)} / ${fmt(XPN(S.level))} опыта`;$('#pname').textContent=NAME;}
+
+/* ============ экраны ============ */
+function vMap(){
+  return `<h1 class="ttl">Карта походов</h1>`+WORLDS.map(w=>{
+    const lock=S.level<w.req,done=w.enemies.filter(e=>S.kills[w.id+'|'+e.n]>0).length;
+    return `<button class="wc ${lock?'lock':''}" data-act="world" data-id="${w.id}"><div class="bn">${scene(w.id,'ban')}</div><div class="wc-i"><b>${w.n}</b><span>${lock?`Закрыто · нужен ${w.req}-й уровень`:`Побеждено ${done} из ${w.enemies.length} · ${w.t}`}</span></div>${lock?`<div class="lk">${ICON.lock}</div>`:''}</button>`;
+  }).join('');
+}
+function vWorld(){
+  const w=W(UI.world);
+  return `<button class="back" data-act="back">${ICON.back} Карта</button><h1 class="ttl">${w.n}</h1>`+w.enemies.map((e,i)=>{
+    const st=estats(e),k=S.kills[w.id+'|'+e.n]||0,df=S.level-e.rl;
+    const dg=df>=2?['легко','easy']:df>=0?['по силам','even']:['опасно','hard'];
+    return `<div class="foe ${e.boss?'boss':''}"><div class="pt">${SPR[e.spr](e.pal,e.opt||{})}</div><div class="foe-i"><b>${e.n}</b><small>${e.boss?'<span class="tag boss">Босс</span>':''}${k?`<span class="tag ok">×${k}</span>`:''}Рек. ур. ${e.rl} · <span class="dg-${dg[1]}">${dg[0]}</span></small><small>Здоровье ${fmt(st.hp)} · монеты ${e.coins[0]}–${e.coins[1]}</small></div><button class="btn sm" data-act="fight" data-i="${i}">В бой</button></div>`;
+  }).join('');
+}
+function vHero(){
+  const h=hero(),p=S.points;
+  const STATDEF=[['str','Сила','+8 к урону за очко',999],['def','Стойкость','−2% входящего урона',20],['crit','Меткость','+2% шанс крита',22],['dodge','Ловкость','+2% шанс уклона',18]];
+  const slot=(t,lab)=>{const n=S.equip[t];return `<div class="row" style="margin-bottom:8px"><div class="ico">${n?itemIcon(n):''}</div><div class="grow"><b>${n||'— пусто —'}</b><small>${lab}${n?` · ${t==='weapon'?'+'+ITEMS[n].b+' к удару':'−'+armorPct(ITEMS[n].b)+'% урона'}`:''}</small></div></div>`;};
+  return `<h1 class="ttl">Герой</h1>
+<div class="card"><div class="hero-top"><div class="hero-pic">${SPR.knight(['#8d96a0','#454d57','#c7ced6','#e8832a'],{plume:1})}</div><div class="grow" style="flex:1"><div class="h3" style="margin:0 0 4px;color:var(--bone)">${NAME}</div><div class="sub">Уровень ${S.level}${S.rebirth?` · престиж ×${S.rebirth}`:''}</div><div class="bar2 g"><i style="width:${S.xp/(XPN(S.level))*100}%"></i></div><div class="sub" style="font-size:12px;margin-top:3px">${fmt(S.xp)} / ${fmt(XPN(S.level))} опыта</div></div></div>
+<div class="stats"><div>Здоровье<b>${h.maxHp}</b></div><div>Удар<b>${h.min}–${h.max}</b></div><div>Крит<b>${h.crit}%</b></div><div>Уклон<b>${h.dodge}%</b></div><div>Броня<b>−${Math.round(h.red*100)}%</b></div><div>Победы<b>${S.wins}</b></div></div></div>
+<div class="h3">Очки развития: ${p}</div>
+<div class="card">${STATDEF.map(s=>`<div class="row" style="margin-bottom:9px"><div class="grow"><b>${s[1]} · ${S.stats[s[0]]}</b><small>${s[2]}</small></div><button class="btn sm" data-act="stat" data-k="${s[0]}" ${p<1||S.stats[s[0]]>=s[3]?'disabled':''}>+1</button></div>`).join('')}<div class="sub" style="font-size:13px">Очко даётся за каждый новый уровень.</div></div>
+<div class="h3">Снаряжение</div><div class="card">${slot('weapon','Оружие')}${slot('armor','Броня')}<button class="btn alt sm wide" data-act="tab" data-v="bag">Открыть сумку</button></div>
+<div class="h3">Питомец ${S.pet.name?`· ур. ${petLvl()}`:''}</div>
+<div class="petrow">${PETS.map(p=>`<button class="pet ${S.pet.name===p.n?'on':''}" data-act="pet" data-n="${p.n}">${SPR[p.spr](p.pal)}<b>${p.n}</b></button>`).join('')}</div>
+<div class="sub" style="margin:8px 2px 0;font-size:14px">${S.pet.name?PETS.find(p=>p.n===S.pet.name).d:'Выбери спутника. Каждые 5 побед он вырастает на уровень.'}</div>
+${S.level>=20?`<div class="h3">Престиж</div><div class="card"><div class="sub" style="margin-bottom:10px">Сбросит уровень до 1, взамен даст постоянные +10% к урону. Вещи, монеты и очки сохранятся.</div><button class="btn gold wide" data-act="prestige">Переродиться</button></div>`:''}`;
+}
+function vBag(){
+  const names=Object.keys(S.inv).filter(n=>S.inv[n]>0&&ITEMS[n]);
+  if(!names.length)return `<h1 class="ttl">Сумка</h1><div class="empty">Пока пусто. Добывай вещи в боях и покупай в лавке.</div>`;
+  return `<h1 class="ttl">Сумка</h1><div class="grid">${names.map(n=>{const eq=S.equip.weapon===n||S.equip.armor===n;return `<button class="tile ${eq?'eq':''}" data-act="item" data-n="${n}">${eq?'<i class="eqtag">надето</i>':''}${itemIcon(n)}<b>${n}</b><span>×${S.inv[n]}</span></button>`;}).join('')}</div>`;
+}
+function itemModal(n){
+  const it=ITEMS[n],c=S.inv[n]||0,eq=S.equip[it.t]===n;
+  const info=it.t==='weapon'?`Бонус к удару: +${it.b}`:it.t==='armor'?`Снижает урон на ${armorPct(it.b)}%`:it.d;
+  modal(`<div class="row"><div class="ico" style="width:72px;height:72px">${itemIcon(n)}</div><div class="grow"><b style="font-size:26px">${n}</b><small style="color:${COL[it.r]}">${RN[it.r]} · в сумке ×${c}</small></div></div><p style="font-size:16px;margin:12px 0 0">${info}${it.d&&it.t!=='potion'?'<br><span class="sub">'+it.d+'</span>':''}</p>
+<div class="acts2">${it.t==='weapon'||it.t==='armor'?`<button class="btn" data-act="equip" data-n="${n}">${eq?'Снять':'Надеть'}</button>`:''}<button class="btn alt" data-act="sell" data-n="${n}">Продать · ${sellPrice(n)}</button></div><button class="btn alt sm wide" style="margin-top:10px" data-act="close">Закрыть</button>`);
+}
+function vShop(){
+  const seg=`<div class="seg"><button class="${UI.shop==='coins'?'on':''}" data-act="shop" data-v="coins">Лавка</button><button class="${UI.shop==='chests'?'on':''}" data-act="shop" data-v="chests">Сундуки</button></div>`;
+  if(UI.shop==='coins')return `<h1 class="ttl">Лавка</h1>${seg}`+SHOP.map(n=>{const it=ITEMS[n];return `<div class="card"><div class="row"><div class="ico">${itemIcon(n)}</div><div class="grow"><b>${n}</b><small>${it.t==='weapon'?'+'+it.b+' к удару':it.t==='armor'?'−'+armorPct(it.b)+'% урона':it.d.split('.')[0]}</small></div><button class="btn sm gold" data-act="buy" data-n="${n}" ${S.coins<it.price?'disabled':''}>${fmt(it.price)}</button></div></div>`;}).join('');
+  return `<h1 class="ttl">Сундуки</h1>${seg}<div class="sub" style="margin:-4px 2px 12px">Сундуки покупаются за Звёзды Telegram. Из них выпадает самое сильное снаряжение.</div>`+CHESTS.map((c,i)=>{const t=c.d.reduce((a,b)=>a+b[1],0),own=S.cases[i]||0;return `<div class="card"><div class="chrow"><div class="chico">${chestSvg(c.c)}</div><div style="flex:1;min-width:0"><b style="font:400 22px var(--hd)">${c.n}</b><div class="stars">${c.stars} ★${own?` · в запасе: ${own}`:''}</div><div class="odds">${c.d.map(d=>`${d[0]} ${(d[1]/t*100).toFixed(d[1]/t<.05?1:0).replace('.0','')}%`).join(' · ')}</div></div></div><div class="acts2" style="margin-top:10px">${own?`<button class="btn" data-act="chest" data-i="${i}">Открыть ×${own}</button>`:''}<button class="btn ${own?'alt':''}" data-act="buychest" data-i="${i}">Купить · ${c.stars} ★</button></div></div>`;}).join('');
+}
+function vMore(){
+  daily();
+  const seg=`<div class="seg"><button class="${UI.more==='quests'?'on':''}" data-act="more" data-v="quests">Задания</button><button class="${UI.more==='dun'?'on':''}" data-act="more" data-v="dun">Подземелье</button><button class="${UI.more==='ach'?'on':''}" data-act="more" data-v="ach">Награды</button></div>`;
+  if(UI.more==='quests')return `<h1 class="ttl">Задания дня</h1>${seg}`+QUESTS.map(q=>{const p=Math.min(q.goal,S.q.p[q.id]||0),cl=S.q.c[q.id],ok=p>=q.goal;const rw=[q.coins?q.coins+' монет':'',q.xp?q.xp+' опыта':'',q.item?q.item[1]+'× '+q.item[0]:''].filter(Boolean).join(' + ');return `<div class="card"><div class="row"><div class="grow"><b>${q.t}</b><small>Награда: ${rw}</small><div class="bar2 g"><i style="width:${p/q.goal*100}%"></i></div><small>${p} / ${q.goal}</small></div><button class="btn sm ${ok&&!cl?'':'alt'}" data-act="qclaim" data-id="${q.id}" ${!ok||cl?'disabled':''}>${cl?'Взято':'Забрать'}</button></div></div>`;}).join('');
+  if(UI.more==='dun'){
+    const st=S.dun.stage;
+    return `<h1 class="ttl">Подземелье</h1>${seg}<div class="card"><div class="sub">10 этажей, каждый день заново. Пятый и десятый этажи охраняют боссы. За этажи дают монеты и осколки.</div><div class="steps">${DUN.map((d,i)=>`<div class="st ${i<st?'done':i===st?'cur':''} ${d[3]?'bs':''}">${i+1}</div>`).join('')}</div>${st>=10?'<div class="empty" style="padding:8px">Подземелье пройдено. Новое откроется завтра.</div>':`<button class="btn wide" data-act="dun">Войти на этаж ${st+1}</button>`}</div>
+<div class="h3">Горн · осколков: ${S.shards}</div>`+FORGE.map(f=>`<div class="card"><div class="row"><div class="ico">${itemIcon(f.n)}</div><div class="grow"><b>${f.n}</b><small>${f.cost} осколков</small></div><button class="btn sm" data-act="forge" data-n="${f.n}" ${S.shards<f.cost?'disabled':''}>Выковать</button></div></div>`).join('');
+  }
+  return `<h1 class="ttl">Награды</h1>${seg}`+ACH.map(a=>{const v=Math.min(a.goal,a.get()),ok=v>=a.goal,cl=S.ach[a.id];return `<div class="card"><div class="row"><div class="grow"><b>${a.t}</b><small>${a.d} · ${a.coins} монет</small><div class="bar2 g"><i style="width:${v/a.goal*100}%"></i></div><small>${v} / ${a.goal}</small></div><button class="btn sm ${ok&&!cl?'':'alt'}" data-act="aclaim" data-id="${a.id}" ${!ok||cl?'disabled':''}>${cl?'Взято':'Забрать'}</button></div></div>`;}).join('');
+}
+const ACH=[
+ {id:'w1',t:'Первая кровь',d:'Победи первого врага',goal:1,get:()=>S.wins,coins:50},
+ {id:'w25',t:'Охотник',d:'Победи 25 врагов',goal:25,get:()=>S.wins,coins:200},
+ {id:'b5',t:'Убийца боссов',d:'Победи 5 боссов',goal:5,get:()=>S.bosses,coins:500},
+ {id:'l10',t:'Закалённый',d:'Достигни 10 уровня',goal:10,get:()=>S.level,coins:300},
+ {id:'ch3',t:'Счастливчик',d:'Открой 3 сундука',goal:3,get:()=>S.chests,coins:150},
+ {id:'d10',t:'Покоритель глубин',d:'Пройди 10 этаж подземелья',goal:10,get:()=>S.dunBest,coins:400},
+ {id:'rb',t:'Перерождённый',d:'Соверши престиж',goal:1,get:()=>S.rebirth,coins:600}
+];
+const TABS=[['map','Поход','map'],['hero','Герой','hero'],['bag','Сумка','bag'],['shop','Лавка','shop'],['more','Дела','scroll'],['exp','Миры+','map']];
+function render(){
+  hud();
+  $('#nav').innerHTML=TABS.map(t=>`<button class="${UI.tab===t[0]?'on':''}" data-act="tab" data-v="${t[0]}">${ICON[t[2]]}<span>${t[1]}</span></button>`).join('');
+  const v=UI.tab==='map'?(UI.world?vWorld():vMap()):UI.tab==='hero'?vHero():UI.tab==='bag'?vBag():UI.tab==='shop'?vShop():UI.tab==='exp'?vExpansion():vMore();
+  $('#view').innerHTML=v;
+}
+
+/* ============ действия ============ */
+const ACT={
+ tab:d=>{UI.tab=d.v;UI.world=null;render();$('#view').scrollTop=0;},
+ world:d=>{const w=W(d.id);if(S.level<w.req){toast(`Откроется на ${w.req}-м уровне`);return;}UI.world=d.id;render();$('#view').scrollTop=0;},
+ back:()=>{UI.world=null;render();},
+ fight:d=>{const w=W(UI.world),e=w.enemies[+d.i];startBattle(Object.assign({k:w.id+'|'+e.n},e),w.id,'world');},
+ stat:d=>{if(S.points<1)return;S.points--;S.stats[d.k]++;save();render();},
+ pet:d=>{S.pet.name=S.pet.name===d.n?null:d.n;save();render();},
+ item:d=>itemModal(d.n),
+ equip:d=>{const it=ITEMS[d.n];if(!(S.inv[d.n]>0))return;S.equip[it.t]=S.equip[it.t]===d.n?null:d.n;save();closeModal();render();},
+ sell:d=>{const eq=S.equip.weapon===d.n||S.equip.armor===d.n;if(eq&&S.inv[d.n]<=1){toast('Сначала сними вещь');return;}if(!(S.inv[d.n]>0))return;S.inv[d.n]--;S.coins+=sellPrice(d.n);save();closeModal();render();toast(`+${sellPrice(d.n)} монет`);},
+ buy:d=>{const it=ITEMS[d.n];if(S.coins<it.price){toast('Не хватает монет');return;}S.coins-=it.price;addItem(d.n);save();render();toast('Куплено: '+d.n);},
+ shop:d=>{UI.shop=d.v;render();},
+ more:d=>{UI.more=d.v;render();},
+ chest:d=>{const i=+d.i;if(!(S.cases[i]>0))return;S.cases[i]--;save();openChest(i);},
+ buychest:d=>buyChest(+d.i),
+ ad:d=>adminAct(d.k),
+ qclaim:d=>{const q=QUESTS.find(x=>x.id===d.id);daily();if((S.q.p[q.id]||0)<q.goal||S.q.c[q.id])return;S.q.c[q.id]=1;if(q.coins)S.coins+=q.coins;if(q.xp)gainXp(q.xp);if(q.item)addItem(q.item[0],q.item[1]);save();render();toast('Награда получена');},
+ aclaim:d=>{const a=ACH.find(x=>x.id===d.id);if(a.get()<a.goal||S.ach[a.id])return;S.ach[a.id]=1;S.coins+=a.coins;save();render();toast(`+${a.coins} монет`);},
+ dun:()=>startDungeon(),
+ forge:d=>{const f=FORGE.find(x=>x.n===d.n);if(S.shards<f.cost)return;S.shards-=f.cost;addItem(f.n);save();render();toast('Выковано: '+f.n);},
+ prestige:()=>modal(`<h2>Перерождение</h2><p>Уровень вернётся к 1. Ты получишь постоянный бонус +10% к урону.</p><div class="acts2"><button class="btn gold" data-act="prestige2">Да</button><button class="btn alt" data-act="close">Нет</button></div>`),
+ prestige2:()=>{if(S.level<20)return;S.rebirth++;S.level=1;S.xp=0;save();closeModal();render();toast('Ты переродился!');},
+ close:()=>closeModal(),
+ expSound:()=>{S.expansion.sound=!S.expansion.sound;save();render();toast(S.expansion.sound?'Звуки включены':'Звуки выключены');playTone(520,.06);},
+ expDifficulty:d=>{S.expansion.difficulty=d.v;save();render();toast('Сложность: '+({'normal':'Нормал','nightmare':'Кошмар','hell':'Ад'}[d.v]));},
+ expSeason:d=>{S.expansion.season=d.v;save();render();toast(d.v==='off'?'Сезонное событие выключено':'Событие включено: '+d.v);},
+ expFeed:()=>{if(!S.pet.name){toast('Сначала выбери питомца');return;}if(S.expansion.petFood<1){toast('Корм закончился');return;}S.expansion.petFood--;S.expansion.petHunger=0;S.pet.wins+=1;save();render();toast(S.pet.name+' доволен!');playTone(740,.12);},
+ expBuyFood:()=>{if(S.coins<35){toast('Нужно 35 монет');return;}S.coins-=35;S.expansion.petFood+=3;save();render();toast('Куплено 3 корма');},
+ expPass:()=>{if(S.expansion.pass){toast('Награда уже получена');return;}S.expansion.pass=1;S.coins+=150;gainXp(100);addItem('Зелье лечения',2);save();render();toast('Награда боевого пропуска получена');},
+ expPremium:()=>{toast('Платный трек включается после подключения серверной проверки Telegram Stars');},
+ expWorld:d=>{const data=EXP_WORLDS[d.id];if(!data)return;const wave=S.expansion.survivalWave||0;const e={n:data.n,rl:Math.max(1,S.level+data.lv),boss:!!data.boss,coins:data.boss?[45,90]:[15,35],spr:data.spr,pal:data.pal};startBattle(e,data.wid,'expworld');},
+ expSurvival:()=>startSurvival(),
+ expApi:()=>{const val=(($('#expapi')||{}).value||'').trim().replace(/\/$/,'');if(val&&!/^https?:\/\//i.test(val)){toast('Адрес должен начинаться с https://');return;}S.expansion.apiBase=val;save();render();toast(val?'Адрес API сохранён локально':'Адрес API очищен');}
+};
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(f){buzz('light');f(b.dataset);}});
+
+/* ============ сундуки ============ */
+async function buyChest(i){
+  const c=CHESTS[i];
+  if(!CONFIG.invoiceUrl||!tg||!tg.openInvoice){toast('Оплата Звёздами ещё подключается');return;}
+  try{
+    const r=await fetch(CONFIG.invoiceUrl+'?chest='+i+'&init='+encodeURIComponent(tg.initData||''));const j=await r.json();
+    const st=await new Promise(res=>tg.openInvoice(j.link,res));
+    if(st!=='paid'){toast('Оплата не прошла');return;}
+    S.cases[i]++;save();render();toast('Сундук куплен');
+  }catch(e){toast('Не удалось создать счёт');}
+}
+let _ac;
+function tickSnd(){try{_ac=_ac||new (window.AudioContext||window.webkitAudioContext)();const o=_ac.createOscillator(),g=_ac.createGain();o.type='square';o.frequency.value=520;g.gain.value=.03;o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+.025);}catch(e){}}
+async function openChest(i){
+  const c=CHESTS[i],name=wpick(c.d);addItem(name);S.chests++;save();
+  const N=62,WIN=53,STEP=102,cards=[];
+  for(let k=0;k<N;k++)cards.push(k===WIN?name:wpick(c.d));
+  const card=n=>{const it=ITEMS[n];return `<div class="rc" style="--rc:${COL[it.r]}">${itemIcon(n)}<b>${n}</b></div>`;};
+  modal(`<h2 style="font-size:28px;margin-bottom:2px">${c.n}</h2><div class="roll" id="roll"><div class="strip" id="strip">${cards.map(card).join('')}</div></div><div id="chr" style="text-align:center;min-height:128px;padding-top:6px"><button class="btn alt sm" id="skip">Пропустить</button></div>`,{mid:1,lock:1});
+  const roll=$('#roll'),strip=$('#strip');
+  const target=-(WIN*STEP+48+(Math.random()-.5)*64)+roll.clientWidth/2;
+  let done=false,last=-1,iv;
+  const finishRoll=()=>{
+    if(done)return;done=true;clearInterval(iv);
+    strip.style.transition='none';strip.style.transform=`translateX(${target}px)`;
+    strip.children[WIN].classList.add('win');
+    const it=ITEMS[name],more=S.cases[i]>0;
+    $('#chr').innerHTML=`<div class="reveal"><h3 style="color:${COL[it.r]};margin:6px 0 0">${name}</h3><div class="sub">${RN[it.r]}${it.t==='weapon'?' · +'+it.b+' к удару':it.t==='armor'?' · −'+armorPct(it.b)+'% урона':''}</div><div class="acts2"><button class="btn" data-act="close">Забрать</button>${more?`<button class="btn alt" data-act="chest" data-i="${i}">Ещё ×${S.cases[i]}</button>`:''}</div></div>`;
+    buzz(it.r==='epic'||it.r==='divine'?'heavy':'medium');render();
+  };
+  $('#skip').onclick=finishRoll;
+  strip.style.transform='translateX(0)';
+  await sleep(60);
+  strip.style.transition='transform 6.4s cubic-bezier(.06,.62,.1,1)';
+  strip.style.transform=`translateX(${target}px)`;
+  iv=setInterval(()=>{
+    const x=new DOMMatrix(getComputedStyle(strip).transform).m41,idx=Math.floor((roll.clientWidth/2-x)/STEP);
+    if(idx!==last){last=idx;buzz('light');tickSnd();}
+  },40);
+  strip.addEventListener('transitionend',()=>setTimeout(finishRoll,250),{once:true});
+  setTimeout(finishRoll,7200);
+}
+
+/* ============ бой ============ */
+const RAGE=['Спокоен','Раздражён','Зол','Взбешён','Берсерк'];
+const RAGEM=[1,1.25,1.55,1.9,2.4];
+const ULT={slime:'Слизистая волна',treant:'Гнев леса',spider:'Паутинная казнь',pharaoh:'Проклятие песков',worm:'Поглощение',iceking:'Ледяная буря',crystal:'Хрустальный взрыв',demon:'Адское пламя',dragon:'Драконий огонь',knight:'Казнь клинком',golem:'Каменный обвал',wolf:'Вой смерти',skeleton:'Костяной шторм',minion:'Теневой удар',scorpion:'Смертельный укол',boar:'Таран',phoenix:'Возгорание'};
+const COIN_K=.7;
+let MID=0;
+function startDungeon(){
+  const f=S.dun.stage+1,d=DUN[f-1];if(!d)return;
+  const boss=!!d[3],e={n:d[0],rl:Math.max(1,S.level)+Math.floor(f/2)+(boss?2:0),boss,coins:[10+f*4,20+f*8],spr:d[1],pal:d[2],dun:f};
+  startBattle(e,['plains','forest','desert','ice','volcano'][Math.min(4,Math.floor((f-1)/2))],'dun');
+}
+function startBattle(e,wid,mode){
+  clearInterval(BT);
+  const es=estats(e),h=hero(),now=performance.now();const difficulty=S.expansion?.difficulty||'normal';if(difficulty==='nightmare'){es.hp=Math.round(es.hp*1.6);es.dmg*=1.35;}else if(difficulty==='hell'){es.hp=Math.round(es.hp*2.6);es.dmg*=2;}const sh=e.boss?Math.round(es.hp*.2):0;
+  B={e,wid,mode,es,ehp:es.hp,php:h.maxHp,hmax:h.maxHp,last:now,lastHit:0,lastDealt:now,nextAtk:now+1300,atk:0,shield:0,potCd:0,retCd:0,phoenix:false,coins:0,drops:[],over:false,
+     landed:0,rage:0,esh:sh,eshMax:sh,ph:0,regAcc:0,minions:[],nextSummon:now+3000,ult:{at:e.boss?now+20000:0,warn:false,fire:0,cyc:20000}};
+  const el=$('#battle');el.className='';
+  el.innerHTML=`<div class="bt-scene">${scene(wid)}</div><div class="bt-shade"></div><div class="hurtfx"></div><div class="ragefx"></div><div class="evt" id="evt"></div>
+<div class="bt-top"><button class="icon-btn" id="flee">${ICON.back}</button><div class="bt-title"><b>${e.n}</b><small>${e.boss?'Босс · ':''}рек. ур. ${e.rl}</small></div></div>
+<div class="ebar"><div class="bar e"><i id="ef"></i><span id="et"></span></div>${e.boss?`<div class="bar s"><i id="sf"></i><span id="st"></span></div><div class="ultbar" id="ub"><i id="uf"></i><span id="ut"></span></div>`:''}<div class="chips"><span class="chip" id="rg"></span><span class="chip hidden" id="ad"></span></div></div>
+<div class="stage" id="stage"><div class="spr ${e.boss?'boss':''}" id="spr"><div class="bob">${SPR[e.spr](e.pal,e.opt||{})}</div></div><div class="warn hidden" id="warn"></div><div id="floats"></div><div class="mns" id="mns"></div></div>
+<div class="blog" id="blog"></div>
+<div class="pbar"><div class="bar p"><i id="pf"></i><span id="pt"></span></div><div class="shieldtag hidden" id="sh">ЩИТ</div></div>
+<div class="acts"><button class="act" id="bp"><i class="cd"></i>${ICON.potion}<em>Зелье</em><b id="pc"></b></button><button class="strike" id="bs"><i class="cd"></i><span style="position:relative">Удар</span></button><button class="act" id="br"><i class="cd"></i>${ICON.shield}<em>Отход</em></button></div>`;
+  $('#bs').addEventListener('pointerdown',ev=>{ev.preventDefault();strike();});
+  $('#spr').addEventListener('pointerdown',ev=>{ev.preventDefault();strike('e');});
+  $('#mns').addEventListener('pointerdown',ev=>{const b=ev.target.closest('.mn');if(b){ev.preventDefault();strike(+b.dataset.id);}});
+  $('#bp').onclick=usePotion;$('#br').onclick=retreat;$('#flee').onclick=leave;
+  closeModal();
+  const pc=Math.round((es.adapt-1)*100);
+  say(pc>=2?`${e.n} присмотрелся к твоему оружию: здоровье +${pc}%.`:'Бой начался. Бей по врагу или жми «Удар».');
+  updBattle(now);BT=setInterval(tick,80);
+}
+function evt(t,cls){const el=$('#evt');if(!el)return;el.textContent=t;el.className='evt '+(cls||'');void el.offsetWidth;el.classList.add('go');}
+function say(t){const el=$('#blog');if(el)el.textContent=t;}
+function float(t,cls,player){
+  const f=$('#floats');if(!f)return;const el=document.createElement('div');el.className='fl '+cls;el.textContent=t;
+  el.style.left=(player?50:30+Math.random()*40)+'%';el.style.top=(player?'78%':(30+Math.random()*25)+'%');f.appendChild(el);setTimeout(()=>el.remove(),1000);
+}
+function flash(heavy){const b=$('#battle');if(!b)return;b.classList.add(heavy?'heavy':'hurt');setTimeout(()=>b.classList.remove('hurt','heavy'),heavy?420:220);}
+function msprite(){const k={spider:'spider',wolf:'wolf'}[B.e.spr]||'minion';return SPR[k](B.e.pal,{});}
+function renderMinions(){
+  const el=$('#mns');if(!el||!B)return;
+  el.innerHTML=B.minions.map(m=>`<button class="mn" data-id="${m.id}"><div class="mp">${msprite()}</div><div class="mb"><i style="width:${m.hp/m.max*100}%"></i></div></button>`).join('');
+}
+function summon(now){
+  const boss=!!B.e.boss,free=(boss?4:2)-B.minions.length;
+  if(free<=0){B.nextSummon=now+3000;return;}
+  const c=Math.min(boss?2:1,free);
+  for(let i=0;i<c;i++){const hp=Math.max(30,Math.round(B.es.hp*(boss?.05:.11)));B.minions.push({id:++MID,hp,max:hp});}
+  B.nextSummon=now+(boss?9000:15000);
+  say(`${B.e.n} почуял, что ты слаб, и зовёт подмогу!`);evt('ПОДМОГА!','sm');float('ПОДМОГА','hurt',false);buzz('heavy');flash(true);renderMinions();
+}
+function hurt(d,msg,heavy){
+  B.php-=d;float('−'+d,'hurt',true);flash(heavy);buzz(heavy?'heavy':'light');playTone(heavy?95:145,.12,'sawtooth');if(heavy)shakeBattle();if(msg)say(msg);
+  if(B.php<=0){
+    const h=hero();
+    if(h.phoenix&&!B.phoenix){B.phoenix=true;B.php=Math.round(B.hmax*h.phoenix);say('Феникс возрождает тебя!');float('феникс','heal',true);}
+    else{B.php=0;updBattle(performance.now());finish(false);}
+  }
+}
+function tick(){
+  if(!B||B.over)return;const now=performance.now(),dt=Math.min(250,now-B.last)/1000;B.last=now;
+  if(B.ehp<B.es.hp){
+    const k=(now-B.lastDealt>2500)?2.5:1,g=(B.e.boss?.006:.012)*B.es.hp*k*dt;
+    B.ehp=Math.min(B.es.hp,B.ehp+g);B.regAcc+=g;
+    if(B.regAcc>=B.es.hp*.012){float('+'+Math.round(B.regAcc),'heal',false);B.regAcc=0;}
+  }
+  if(B.php/B.hmax<(B.e.boss?.5:.4)&&now>=B.nextSummon)summon(now);
+  if(B.e.boss)ultStep(now);
+  if(now-B.nextAtk>3000)B.nextAtk=now;
+  while(now>=B.nextAtk&&!B.over){enemyAttack();B.nextAtk+=1000;}
+  if(!B.over)updBattle(now);
+}
+function ultStep(now){
+  const u=B.ult;
+  if(!u.warn&&now>=u.at){u.warn=true;u.fire=now+2800;say(`УЛЬТА «${ULT[B.e.spr]}»! Жми «Отход»!`);buzz('heavy');playTone(660,.22,'sawtooth');}
+  else if(u.warn&&now>=u.fire){
+    u.warn=false;u.cyc=Math.max(13000,24000-B.rage*2500);u.at=now+u.cyc;
+    if(now<B.shield){say('Щит принял ульту!');float('блок','shield',true);return;}
+    const h=hero(),d=Math.max(1,Math.round(B.es.dmg*10*RAGEM[B.rage]*(1-h.red)));
+    hurt(d,`«${ULT[B.e.spr]}» бьёт всей силой: −${d}`,true);
+  }
+}
+function enemyAttack(){
+  B.atk++;const now=performance.now(),rm=RAGEM[B.rage];const spr=$('#spr');if(spr){spr.classList.remove('windup');void spr.offsetWidth;spr.classList.add('windup');setTimeout(()=>spr.classList.remove('windup'),400);}
+  if(now<B.shield){say('Щит принял удар.');float('щит','shield',true);return;}
+  const h=hero();
+  if(Math.random()*100<h.dodge){say('Ты ушёл от удара!');float('уклон','shield',true);return;}
+  let raw=B.es.dmg*(.85+Math.random()*.3)*rm+B.minions.length*B.es.dmg*(B.e.boss?.22:.3)*rm;
+  const d=Math.max(1,Math.round(raw*(1-h.red)));
+  hurt(d,B.minions.length?`${B.e.n} и подмога бьют: −${d}`:`${B.e.n} бьёт: −${d}`,false);
+}
+function strike(tg){
+  if(!B||B.over)return;const now=performance.now();if(now-B.lastHit<650)return;B.lastHit=now;
+  const h=hero();let dmg=(rand(45,65)+h.flat)*h.mul,crit=Math.random()*100<h.crit;if(crit)dmg*=2;dmg=Math.round(dmg);
+  S.hits++;qAdd('hit',1);buzz(crit?'heavy':'light');playTone(crit?190:310,.055,crit?'sawtooth':'square');trailFx();
+  let mi=-1;
+  if(typeof tg==='number')mi=B.minions.findIndex(m=>m.id===tg);
+  else if(tg!=='e'&&B.minions.length)mi=0;
+  let msg;
+  if(mi>=0){
+    const m=B.minions[mi];m.hp-=dmg;float((crit?'КРИТ ':'')+dmg,crit?'crit':'',false);
+    if(m.hp<=0){B.minions.splice(mi,1);msg='Подмога повержена.';}else msg=`Ты бьёшь подмогу: ${fmt(dmg)}.`;
+    renderMinions();B.landed++;
+  }else{
+    const sp=$('#spr');sp.classList.remove('hit');void sp.offsetWidth;sp.classList.add('hit');
+    let left=dmg;
+    if(B.esh>0){const a=Math.min(B.esh,left);B.esh-=a;left-=a;float('щит −'+Math.round(a),'shield',false);if(B.esh<=0)msg='Щит босса разбит!';}
+    if(left>0){B.ehp=Math.max(0,B.ehp-left);float((crit?'КРИТ ':'')+Math.round(left),crit?'crit':'',false);}
+    B.lastDealt=now;B.landed++;
+    msg=msg||`Ты нанёс ${fmt(dmg)} урона${crit?' — критический удар!':'.'}`;
+    if(B.e.boss&&B.ph<2&&B.ehp<B.es.hp*[.66,.33][B.ph]&&B.ehp>0){B.ph++;B.eshMax=Math.round(B.es.hp*.12);B.esh=B.eshMax;msg='Босс закрылся новым щитом!';float('ЩИТ','shield',false);}
+  }
+  const stage=Math.min(4,Math.floor(B.landed/(B.e.boss?10:5)));
+  if(stage>B.rage){B.rage=stage;msg=`${B.e.n}: «${RAGE[stage]}»! Удары сильнее.`;evt('ЯРОСТЬ: '+RAGE[stage].toUpperCase(),'rg');flash(true);buzz('heavy');const bt=$('#battle');if(bt)bt.style.setProperty('--rg',(stage*.13).toFixed(2));
+    const bob=$('#spr .bob');if(bob)bob.style.filter=`saturate(${1+.5*stage}) sepia(${.15*stage}) hue-rotate(${-10*stage}deg) brightness(${1+.04*stage}) drop-shadow(0 0 ${8*stage}px rgba(255,50,20,.9))`;$('#spr').classList.add('rage');}
+  if(Math.random()<.25){const c=Math.max(1,Math.round(rand(B.e.coins[0],B.e.coins[1])*.05));S.coins+=c;B.coins+=c;qAdd('coin',c);float('+'+c,'coin',false);msg+=` +${c} монет.`;}
+  if(Math.random()<.008){const n=wpick(HIT_DROPS);addItem(n);B.drops.push(n);float(n,'item',false);msg+=` Выпало: ${n}!`;}
+  say(msg);
+  if(B.ehp<=0){updBattle(now);finish(true);}
+}
+function usePotion(){
+  if(!B||B.over)return;const now=performance.now();
+  if(now<B.potCd){toast('Зелье перезаряжается');return;}
+  if(!(S.inv[POT]>0)){toast('Нет зелий');return;}
+  S.inv[POT]--;const heal=Math.min(B.hmax-B.php,Math.max(40,Math.round(B.hmax*.3)));B.php+=heal;B.potCd=now+10000;
+  float('+'+heal,'heal',true);say(`Зелье вернуло ${heal} здоровья.`);buzz('medium');save();
+}
+function retreat(){
+  if(!B||B.over)return;const now=performance.now();
+  if(now<B.retCd){toast('Отход перезаряжается');return;}
+  const heal=Math.min(B.hmax-B.php,Math.max(35,Math.round(B.hmax*.12)));B.php+=heal;B.shield=now+3000;B.retCd=now+10000;
+  float('+'+heal,'heal',true);say('Отход: 3 секунды без урона.');buzz('medium');
+}
+function updBattle(now){
+  if(!B||!$('#ef'))return;
+  $('#ef').style.width=Math.max(0,B.ehp/B.es.hp*100)+'%';$('#et').textContent=`${fmt(Math.max(0,B.ehp))} / ${fmt(B.es.hp)}`;
+  if(B.e.boss){
+    $('#sf').style.width=(B.eshMax?Math.max(0,B.esh/B.eshMax*100):0)+'%';$('#st').textContent=B.esh>0?`ЩИТ ${fmt(B.esh)}`:'щита нет';
+    const u=B.ult,ub=$('#ub');ub.classList.toggle('warn',u.warn);
+    $('#uf').style.width=(u.warn?100:Math.max(0,Math.min(100,(1-(u.at-now)/u.cyc)*100)))+'%';
+    $('#ut').textContent=u.warn?`УЛЬТА «${ULT[B.e.spr]}» — ${Math.max(0,(u.fire-now)/1000).toFixed(1)} с`:`ульта «${ULT[B.e.spr]}»`;
+    const w=$('#warn');w.classList.toggle('hidden',!u.warn||B.over);w.textContent=`УЛЬТА! ЖМИ «ОТХОД» (${Math.max(0,(u.fire-now)/1000).toFixed(1)})`;
+  }else $('#warn').classList.add('hidden');
+  const rg=$('#rg');rg.textContent='Ярость: '+RAGE[B.rage];rg.className='chip r'+B.rage;
+  const ad=$('#ad');if(B.es.adapt>1.02){ad.classList.remove('hidden');ad.textContent='Под твой клинок +'+Math.round((B.es.adapt-1)*100)+'%';}
+  $('#pf').style.width=Math.max(0,B.php/B.hmax*100)+'%';$('#pt').textContent=`${Math.max(0,Math.round(B.php))} / ${B.hmax}`;
+  document.querySelectorAll('.mn').forEach(n=>{const m=B.minions.find(x=>x.id===+n.dataset.id);if(m)n.querySelector('.mb i').style.width=Math.max(0,m.hp/m.max*100)+'%';});
+  const cd=(el,left,tot)=>{$(el+' .cd').style.height=Math.max(0,Math.min(100,left/tot*100))+'%';};
+  cd('#bs',B.lastHit+650-now,650);cd('#bp',B.potCd-now,10000);cd('#br',B.retCd-now,10000);
+  $('#pc').textContent='×'+(S.inv[POT]||0);
+  $('#sh').classList.toggle('hidden',!(now<B.shield));
+}
+function leave(){clearInterval(BT);B=null;$('#battle').className='hidden';$('#battle').innerHTML='';render();}
+function finish(win){
+  B.over=true;clearInterval(BT);const e=B.e,mode=B.mode,r=[];let ups=0;
+  B.minions=[];renderMinions();const wn=$('#warn');if(wn)wn.classList.add('hidden');
+  if(win){
+    $('#spr').classList.add('die');buzz('heavy');playTone(e.boss?880:620,.28);if(e.boss){const bt=$('#battle');if(bt){bt.style.transition='filter .25s';bt.style.filter='contrast(1.2) saturate(.7)';setTimeout(()=>{if(bt)bt.style.filter='';},1100);const title=document.createElement('div');title.className='evt go boss-intro';title.textContent='БОСС ПОВЕРЖЕН';bt.appendChild(title);bt.style.filter='saturate(.7)';setTimeout(()=>{if(bt)bt.style.filter='';},900);}}
+    const xp=Math.round(14*e.rl*(e.boss?4:1)),bonus=Math.round(rand(e.coins[0],e.coins[1])*COIN_K);
+    S.coins+=bonus;S.wins++;if(e.boss)S.bosses++;if(S.pet.name)S.pet.wins++;qAdd('win',1);qAdd('coin',bonus);
+    if(e.k)S.kills[e.k]=(S.kills[e.k]||0)+1;
+    ups=gainXp(xp);
+    r.push(['Опыт','+'+fmt(xp)],['Монеты за победу','+'+fmt(bonus)]);
+    if(B.coins)r.push(['Монеты в бою','+'+fmt(B.coins)]);
+    B.drops.forEach(n=>r.push(['Находка',n]));
+    let got=null;
+    if(e.boss){
+      const rr=Math.random();
+      if(rr<.0012)got=['Божественный меч','Божественная броня'][rand(0,1)];
+      else if(rr<.0132)got=['Эпический клинок','Эпическая броня'][rand(0,1)];
+      else if(Math.random()<.45)got=wpick(BOSS_DROPS);
+    }else if(Math.random()<.06)got=wpick(MOB_DROPS);
+    if(got){addItem(got);r.push(['Трофей',got]);}
+    if(mode==='dun'){const f=e.dun,c=Math.round((50+f*25*(e.boss?2:1))*.7),sh=e.boss?3:1;S.coins+=c;S.shards+=sh;S.dun.stage=Math.max(S.dun.stage,f);S.dunBest=Math.max(S.dunBest,f);r.push([`Этаж ${f}`,'+'+c+' монет'],['Осколки','+'+sh]);}
+    if(mode==='survival'){S.expansion.survivalWave=Math.max(S.expansion.survivalWave||0,+(e.n.match(/Волна (\d+)/)||[])[1]||0);S.coins+=20+S.expansion.survivalWave*5;gainXp(10+S.expansion.survivalWave*2);r.push(['Выживание','Волна пройдена'],['Бонус','+'+(20+S.expansion.survivalWave*5)+' монет']);}
+    if(mode==='expworld'){S.coins+=35;r.push(['Исследование','+35 монет']);}
+  }else{
+    const loss=Math.round(S.coins*.08);S.coins-=loss;
+    if(B.coins)r.push(['Монеты в бою','+'+fmt(B.coins)]);
+    B.drops.forEach(n=>r.push(['Находка',n]));
+    if(loss)r.push(['Потеряно при бегстве','−'+fmt(loss)]);
+  }
+  save();
+  const again=(mode==='dun'||mode==='survival')&&win?'Дальше':'Ещё раз',canAgain=!(mode==='dun'&&win&&S.dun.stage>=10);
+  setTimeout(()=>{
+    modal(`<h2 class="${win?'win':'lose'}">${win?'Победа':'Поражение'}</h2><div class="sub" style="margin-bottom:8px">${win?e.n+' повержен.':e.n+' оказался сильнее. Запаси зелий и вернись.'}</div>${r.map(x=>`<div class="rw"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}${ups?`<div class="lvlup">Новый уровень: ${S.level}! Очко развития +${ups}</div>`:''}<div class="acts2">${canAgain?`<button class="btn" id="again">${again}</button>`:''}<button class="btn alt" id="done">К карте</button></div>`,{mid:1,lock:1});
+    const a=$('#again');if(a)a.onclick=()=>{if(mode==='dun'&&win)startDungeon();else if(mode==='survival'&&win)startSurvival();else startBattle(e,B.wid,mode);};
+    $('#done').onclick=()=>{closeModal();leave();};
+  },win?650:300);
+}
+
+/* ============ скрытая админка ============ */
+function hsh(s){let a=0x811c9dc5,b=5381;for(const ch of s){const c=ch.charCodeAt(0);a^=c;a=Math.imul(a,16777619)>>>0;b=((b<<5)+b+c)>>>0;}return a.toString(36)+'-'+b.toString(36);}
+const ADMIN_H='yyhe0f-1ufq61v';
+let UID=0,adTaps=0,adT=0,adFails=0,adLock=0,adRst=0;
+function adminGate(){
+  // Без контракта API нельзя безопасно выдавать админские права в клиентском HTML.
+  if(B)return;
+  modal(`<h2>Серверная админка</h2><p class="sub">Локальная админка отключена. Администратор должен подтверждаться сервером через API; одного пароля в HTML недостаточно.</p><button class="btn alt wide" data-act="close">Закрыть</button>`,{mid:1});
+}
+function adminPanel(keep){
+  const n=keep||'100',btn=(k,t,c='')=>`<button class="btn sm ${c}" data-act="ad" data-k="${k}">${t}</button>`;
+  const row=(l,k)=>`<div class="adg"><div class="adl">${l}</div>${btn(k+'+','+')}${btn(k+'-','−','alt')}</div>`;
+  modal(`<h2>Админка</h2><div class="sub" style="margin-bottom:6px">Telegram ID: ${UID||'—'} · ур. ${S.level} · монет ${fmt(S.coins)} · очков ${S.points} · осколков ${S.shards}<br>Кейсы: ${S.cases.join(' / ')}</div>
+<input id="adn" class="inp" type="number" inputmode="numeric" value="${n}">
+${row('Монеты','c')}${row('Уровень','l')}<div class="adg"><div class="adl">Установить уровень</div>${btn('lset','Ок')}</div>
+${row('Очки развития','p')}${row('Осколки','s')}
+${CHESTS.map((c,i)=>row('Кейс: '+c.n.split(' ')[0],'k'+i)).join('')}
+<div class="adg"><select id="adi">${Object.keys(ITEMS).map(k=>`<option>${k}</option>`).join('')}</select>${btn('i+','+')}${btn('i-','−','alt')}</div>
+<div class="adg"><div class="adl">Сбросить весь прогресс</div>${btn('reset','Сброс','alt')}</div>
+<button class="btn alt wide" data-act="close" style="margin-top:6px">Закрыть</button>`);
+}
+function adminAct(k){
+  const n=Math.max(0,Math.floor(+(($('#adn')||{}).value)||0));
+  if(k==='c+')S.coins+=n;else if(k==='c-')S.coins=Math.max(0,S.coins-n);
+  else if(k==='l+'){S.level+=n;S.points+=n;}
+  else if(k==='l-'){const m=Math.min(n,S.level-1);S.level-=m;S.points=Math.max(0,S.points-m);S.xp=0;}
+  else if(k==='lset'){const t=Math.max(1,n);S.points=Math.max(0,S.points+(t-S.level));S.level=t;S.xp=0;}
+  else if(k==='p+')S.points+=n;else if(k==='p-')S.points=Math.max(0,S.points-n);
+  else if(k==='s+')S.shards+=n;else if(k==='s-')S.shards=Math.max(0,S.shards-n);
+  else if(k[0]==='k'){const i=+k[1];if(k[2]==='+')S.cases[i]+=n;else S.cases[i]=Math.max(0,S.cases[i]-n);}
+  else if(k==='i+')addItem($('#adi').value,Math.max(1,n));
+  else if(k==='i-'){const it=$('#adi').value;S.inv[it]=Math.max(0,(S.inv[it]||0)-Math.max(1,n));if(S.inv[it]<=0){if(S.equip.weapon===it)S.equip.weapon=null;if(S.equip.armor===it)S.equip.armor=null;}}
+  else if(k==='reset'){if(Date.now()-adRst>4000){adRst=Date.now();toast('Нажми ещё раз для сброса');return;}S=DEF();toast('Прогресс сброшен');}
+  save();render();adminPanel(String(n));
+}
+(function(){const el=document.getElementById('pname');el.addEventListener('click',()=>{const t=Date.now();if(t-adT>3000)adTaps=0;adT=t;if(++adTaps>=7){adTaps=0;adminGate();}});})();
+
+/* ============ расширение WORLDX ============ */
+const EXP_WORLDS={
+ swamp:{n:'Топляк, хранитель болота',spr:'treant',pal:['#57764b','#2c4429','#a2c77c','#d8e96a'],lv:1,boss:false,wid:'forest'},
+ grave:{n:'Погребальный рыцарь',spr:'skeleton',pal:['#b5b5a8','#5b5d63','#f0e7c9','#e15b4c'],lv:2,boss:true,wid:'desert'},
+ sky:{n:'Небесный страж',spr:'phoenix',pal:['#83bce5','#426caa','#e5f6ff','#ffd45e'],lv:3,boss:true,wid:'ice'},
+ temple:{n:'Бездна подводного храма',spr:'scorpion',pal:['#3b9f9c','#155c64','#9ce8e3','#f4d86b'],lv:4,boss:true,wid:'ice'},
+ abyss:{n:'Архонт Бездны',spr:'demon',pal:['#5e3d79','#251a3a','#d6a2ff','#ff4e70'],lv:6,boss:true,wid:'volcano'}
+};
+function vExpansion(){
+ const x=S.expansion||{};const season=x.season||'off';const seasonName=season==='halloween'?'Хэллоуин':season==='newyear'?'Новый год':'Сезон не выбран';
+ const diff=x.difficulty||'normal';
+ return `<h1 class="ttl">Миры и события</h1>
+ <div class="season-banner"><b>✦ ${season==='off'?'WORLDX: расширение':seasonName}</b><div class="sub">${season==='halloween'?'Тыквы, призрачные враги и сезонные награды.':season==='newyear'?'Снежные миры, подарки и зимние награды.':'Новые режимы, питомцы и сезонные события.'}</div></div>
+ <div class="h3">Настройки боя</div><div class="card"><div class="row"><div class="grow"><b>Звуки и эффекты</b><small>Удары, ульта, награды и меню</small></div><button class="btn sm ${x.sound===false?'alt':''}" data-act="expSound">${x.sound===false?'ВЫКЛ':'ВКЛ'}</button></div><div class="sub" style="margin-top:9px">Сложность</div><div class="seg" style="margin:7px 0 0"><button class="${diff==='normal'?'on':''}" data-act="expDifficulty" data-v="normal">Нормал</button><button class="${diff==='nightmare'?'on':''}" data-act="expDifficulty" data-v="nightmare">Кошмар</button><button class="${diff==='hell'?'on':''}" data-act="expDifficulty" data-v="hell">Ад</button></div><small class="sub">Кошмар: враги сильнее. Ад: очень высокие здоровье и урон.</small></div>
+ <div class="h3">Новые локации</div><div class="exp-grid">${Object.entries(EXP_WORLDS).map(([id,w])=>`<button class="exp-tile" data-act="expWorld" data-id="${id}"><b>${({swamp:'☘ Болото',grave:'☠ Кладбище',sky:'☁ Небесный город',temple:'♜ Подводный храм',abyss:'✦ Бездна'})[id]}</b><small>${w.n}${w.boss?' · босс':''}</small></button>`).join('')}</div>
+ <div class="h3">Режимы</div><div class="card"><div class="row"><div class="grow"><b>Выживание</b><small>Бесконечные волны. Каждая следующая сильнее.</small><span class="exp-pill">Рекорд: волна ${x.survivalWave||0}</span></div><button class="btn sm" data-act="expSurvival">Играть</button></div></div>
+ <div class="h3">Боевой пропуск</div><div class="card"><div class="row"><div class="grow"><b>Уровень пропуска 1</b><small>Бесплатно: 150 монет, 100 опыта и 2 зелья.</small></div><button class="btn sm ${x.pass?'alt':''}" data-act="expPass" ${x.pass?'disabled':''}>${x.pass?'Получено':'Забрать'}</button></div><div class="row" style="margin-top:10px"><div class="grow"><b>Премиум-трек ★</b><small>Платные награды открываются после подключения проверяемых платежей Telegram Stars.</small></div><button class="btn sm gold" data-act="expPremium">★</button></div></div>
+ <div class="h3">Питомец: корм и уход</div><div class="card"><div class="row"><div class="grow"><b>${S.pet.name||'Спутник не выбран'}</b><small>Корм: ${x.petFood??3} · уровень: ${S.pet.name?petLvl():'—'}</small><small>${S.pet.name?'Покорми спутника, чтобы поднять настроение и опыт.':'Выбери питомца во вкладке «Герой».'}</small></div><button class="btn sm" data-act="expFeed" ${!S.pet.name||(x.petFood||0)<1?'disabled':''}>Кормить</button></div><button class="btn alt sm wide" style="margin-top:8px" data-act="expBuyFood">Купить 3 корма · 35 монет</button></div>
+ <div class="h3">Сезонное событие</div><div class="card"><div class="sub" style="margin-bottom:9px">Демо-переключатель темы. Полноценная серверная публикация события и платного БП требует API.</div><div class="seg"><button class="${season==='off'?'on':''}" data-act="expSeason" data-v="off">Выкл.</button><button class="${season==='halloween'?'on':''}" data-act="expSeason" data-v="halloween">Хэллоуин</button><button class="${season==='newyear'?'on':''}" data-act="expSeason" data-v="newyear">Новый год</button></div></div>
+ <div class="h3">Рейтинг на этом устройстве</div><div class="card"><div class="row"><div class="grow"><b>Уровень ${S.level}</b><small>Победы: ${S.wins} · боссы: ${S.bosses} · этажи: ${S.dunBest}</small></div><span class="exp-pill">Локально</span></div><div class="sub" style="margin-top:8px">Общий рейтинг всех игроков появится после подключения API.</div></div>
+ <div class="h3">Подключение API</div><div class="card"><label class="sub" for="expapi">Базовый URL API (сохраняется в этом браузере)</label><input id="expapi" class="inp" type="url" placeholder="https://api.example.com" value="${String(x.apiBase||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><button class="btn sm wide" style="margin-top:8px" data-act="expApi">Сохранить адрес</button><small class="sub" style="display:block;margin-top:7px">Адрес сохранится, но серверные функции не активируются автоматически: нужны реальные маршруты API и серверная авторизация.</small></div>`;
+}
+function startSurvival(){
+ const wave=(S.expansion.survivalWave||0)+1;const roster=[['Пепельный волк','wolf',['#727983','#343a45','#c7ccd2','#ffb14a']],['Костяной страж','skeleton',['#b9b4a3','#5d5b58','#f1e6c7','#ff6252']],['Пожиратель глубин','worm',['#4f7e86','#29454d','#a6d8df','#b6f3ff']],['Адский дракон','dragon',['#c94e32','#61241e','#ffb16b','#ffdb62']]];const z=roster[(wave-1)%roster.length];const boss=wave%5===0;const e={n:boss?'ВОЛНА '+wave+': '+z[0]+' — Вожак':`Волна ${wave}: ${z[0]}`,rl:Math.max(1,S.level+Math.floor(wave/3)),boss,coins:[12+wave*3,22+wave*5],spr:z[1],pal:z[2]};startBattle(e,'volcano','survival');
+}
+
+/* ============ запуск ============ */
+$('#coinico').innerHTML=ICON.coin;
+if(tg){
+  try{tg.ready();tg.expand();tg.setHeaderColor('#251d17');tg.setBackgroundColor('#17120f');if(tg.disableVerticalSwipes)tg.disableVerticalSwipes();}catch(e){}
+  const u=tg.initDataUnsafe&&tg.initDataUnsafe.user;if(u&&u.first_name)NAME=u.first_name;if(u&&u.id)UID=u.id;
+  try{tg.CloudStorage.getItem(KEY,(err,v)=>{if(err||!v)return;try{const r=JSON.parse(v);if(r.ts>S.ts&&!B){S=hydrate(r);render();}}catch(e){}});}catch(e){}
+}
+daily();render();
+window.addEventListener('pagehide',flush);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flush();});
+</script>
+</body>
+</html>
