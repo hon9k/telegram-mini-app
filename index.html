@@ -363,6 +363,22 @@ html[data-graphics=ultra] .btn:not(.alt){filter:saturate(1.2) brightness(1.08)}
 html[data-graphics="low"] #view *,html[data-graphics="low"] #view *::before,html[data-graphics="low"] #view *::after{animation:none!important;transition:none!important}
 html[data-graphics="low"] .wc,html[data-graphics="low"] .card{box-shadow:none!important}
 </style>
+<style id="wx-ultra-menu">
+/* Ультра: оптимизация меню — вид сохранён, убраны самые тяжёлые эффекты */
+html[data-graphics=ultra] .hud,html[data-graphics=ultra] .nav,html[data-graphics=ultra] .card,html[data-graphics=ultra] .wc,html[data-graphics=ultra] .foe,html[data-graphics=ultra] .tile,html[data-graphics=ultra] .seg,html[data-graphics=ultra] .sheet,html[data-graphics=ultra] .hubb{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html[data-graphics=ultra] .card,html[data-graphics=ultra] .wc,html[data-graphics=ultra] .foe,html[data-graphics=ultra] .seg{background-color:rgba(20,23,44,.96)!important}
+html[data-graphics=ultra] .hud,html[data-graphics=ultra] .nav{background-color:rgba(16,19,38,.97)!important}
+html[data-graphics=ultra] .wc{box-shadow:0 8px 18px -12px var(--ac,#ff8a3d),inset 0 0 0 1px rgba(255,255,255,.1)!important}
+html[data-graphics=ultra] .card{box-shadow:0 8px 18px -14px rgba(255,135,70,.3)!important}
+html[data-graphics=ultra] .btn:not(.alt){filter:none!important}
+html[data-graphics=ultra] #view .card,html[data-graphics=ultra] #view .wc,html[data-graphics=ultra] #view .foe,html[data-graphics=ultra] #view .tile{contain:layout paint style}
+html[data-graphics=ultra] #view svg,html[data-graphics=ultra] #view .spr{filter:none!important}
+html[data-graphics=ultra] .modal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(8,5,3,.86)}
+html[data-graphics=ultra] .sn:nth-child(n+13){display:none}
+html[data-graphics=ultra] #view,html[data-graphics=ultra] .x5-grid{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+html[data-graphics=ultra] #view .spr .bob{animation-duration:3.6s}
+@media(prefers-reduced-motion:reduce){html[data-graphics=ultra] #view *{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="app">
@@ -3429,6 +3445,231 @@ window.CITYFX=function(s,R){const wid=String(s.wid).replace('c_',''),r=Math.rand
   volcano:()=>{const a=r()*2*PI,q=r()*16;return{x:Math.cos(a)*q,y:0,z:Math.sin(a)*q,vx:r()-.5,vy:3+r()*3,life:2.2,size:.14,size2:.02,c:[1,.5,.12],a:.9,add:true};}}[wid]||(()=>({x:H(),y:r()*8,z:H(),vy:.6,life:2.5,size:.1,size2:.02,c:[.6,.7,1],a:.7,add:true}));
  for(let i=0;i<2;i++)R.emit(P());};
 
+</script>
+
+<script>
+/* WORLDX: CS-style case carousel + CSS 3D case models */
+(()=>{
+const style=document.createElement('style');style.textContent=`
+.wx-case3d{width:116px;height:108px;margin:8px auto 16px;perspective:620px;display:grid;place-items:center;contain:layout style}
+.wx-case3d .cube{width:104px;height:70px;position:relative;transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(-32deg);animation:wxCaseTurn 5s ease-in-out infinite alternate}
+.wx-case3d .face{position:absolute;inset:0;border:2px solid #171719;background:linear-gradient(145deg,var(--case),#282b37 70%);box-shadow:inset 0 0 18px #0008;display:grid;place-items:center;color:#fff;font:900 18px system-ui;text-shadow:0 2px 3px #000}
+.wx-case3d .front{transform:translateZ(28px)}.wx-case3d .back{transform:rotateY(180deg) translateZ(28px)}
+.wx-case3d .left{width:56px;left:24px;transform:rotateY(-90deg) translateZ(52px)}.wx-case3d .right{width:56px;left:24px;transform:rotateY(90deg) translateZ(52px)}
+.wx-case3d .top{height:56px;top:7px;transform:rotateX(90deg) translateZ(35px);background:linear-gradient(45deg,#777,var(--case))}
+.wx-case3d .bottom{height:56px;top:7px;transform:rotateX(-90deg) translateZ(35px)}
+.wx-case3d .front:after{content:'◆';font-size:25px;color:#fff8;border:2px solid #fff6;padding:1px 13px}
+@keyframes wxCaseTurn{to{transform:rotateX(-12deg) rotateY(28deg)}}
+.wx-case3d.open .cube{animation:wxCaseOpen .65s ease forwards}@keyframes wxCaseOpen{to{transform:rotateX(-40deg) rotateY(130deg) translateY(-15px) scale(.65);opacity:.3}}
+.wx-case-stage{background:radial-gradient(ellipse at 50% 40%,#5b4a4b66,transparent 72%);padding:5px 0 2px}
+.wx-case-roll{position:relative;overflow:hidden;height:146px;margin:8px 0 12px;background:#100f17;border:2px solid #625b6a;box-shadow:inset 0 0 20px #000}
+.wx-case-roll:before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(90deg,#100f17 0%,transparent 17%,transparent 83%,#100f17 100%)}
+.wx-case-roll:after{content:'';position:absolute;top:0;bottom:0;left:50%;width:3px;background:#ffd56c;box-shadow:0 0 12px #ffcb42;z-index:3;pointer-events:none}
+.wx-case-track{display:flex;gap:7px;padding:10px 0;width:max-content;will-change:transform;transform:translate3d(0,0,0)}
+.wx-case-track .rc{width:106px;height:122px;flex:none;transform:translateZ(0)}
+.wx-case-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:10px 0}
+.wx-case-grid .rc{width:100%;height:100px;padding:3px;min-width:0}.wx-case-grid .rc svg{width:40px;height:43px}.wx-case-grid .rc b{font-size:9px;overflow-wrap:anywhere}
+ .wx-case-result{text-align:center;min-height:65px}
+.wx-prize3d{height:165px;display:grid;place-items:center;perspective:650px;overflow:visible;margin:4px auto 10px}
+.wx-prize-object{width:120px;height:120px;position:relative;transform-style:preserve-3d;animation:wxPrizeSpin 5s ease-in-out infinite alternate;filter:drop-shadow(0 14px 15px #0009)}
+.wx-prize-face{position:absolute;inset:0;display:grid;place-items:center;border:2px solid var(--rarity);border-radius:16px;background:radial-gradient(circle at 30% 20%,#ffffff22,#202433 75%);backface-visibility:visible;box-shadow:inset 0 0 22px #0009,0 0 20px var(--rarity)}
+.wx-prize-face svg{width:100px;height:100px;filter:drop-shadow(3px 6px 3px #0008)}
+.wx-prize-face.front{transform:translateZ(13px)}.wx-prize-face.back{transform:translateZ(-13px) rotateY(180deg)}
+.wx-prize-edge{position:absolute;inset:0;border:12px solid var(--rarity);border-radius:18px;transform:rotateY(90deg);opacity:.65}
+@keyframes wxPrizeSpin{from{transform:rotateX(-13deg) rotateY(-28deg)}to{transform:rotateX(12deg) rotateY(35deg)}}
+.wx-case-grid .wx-prize3d{height:78px;margin:0}.wx-case-grid .wx-prize-object{width:62px;height:62px;animation-duration:7s}.wx-case-grid .wx-prize-face{border-radius:8px}.wx-case-grid .wx-prize-face svg{width:53px;height:53px}.wx-case-grid .wx-prize-face.front{transform:translateZ(7px)}.wx-case-grid .wx-prize-face.back{transform:translateZ(-7px) rotateY(180deg)}.wx-case-grid .wx-prize-edge{border-width:6px}
+.wx-case-grid .wx-reward{min-width:0;text-align:center;background:#171925;border:1px solid #44465c;border-bottom:3px solid var(--rarity);border-radius:8px;padding:5px 2px}.wx-reward b{font-size:10px;display:block;overflow-wrap:anywhere}.wx-reward small{font-size:9px;color:#aaa}
+.wx-case-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:42dvh;overflow:auto}
+.wx-case-grid .wx-reward{padding:4px}
+.wx-case-result h3{margin:5px 0;color:var(--rarity)}
+@media(max-width:390px){.wx-case-grid .rc{height:87px}.wx-case-grid .rc svg{width:32px;height:36px}}
+@media(prefers-reduced-motion:reduce){.wx-case3d .cube{animation:none}}
+`;document.head.appendChild(style);
+const model=(color)=>`<div class="wx-case3d" style="--case:${color}"><div class="cube"><div class="face front"></div><div class="face back">WX</div><div class="face left"></div><div class="face right"></div><div class="face top">WORLDX</div><div class="face bottom"></div></div></div>`;
+const prize=(name,small=false)=>{const it=ITEMS[name];if(!it)return '';const icon=itemIcon(name);return `<div class="wx-prize3d" style="--rarity:${COL[it.r]}"><div class="wx-prize-object"><div class="wx-prize-face back">${icon}</div><div class="wx-prize-edge"></div><div class="wx-prize-face front">${icon}</div></div></div>`;};
+const originalRender=render;
+render=function(){const v=originalRender.apply(this,arguments);document.querySelectorAll('.chico').forEach(el=>{const card=el.closest('.card');if(!card)return;const b=card.querySelector('[data-act="chest"], [data-act="buychest"]');if(!b)return;const c=CHESTS[+b.dataset.i];if(c)el.innerHTML=model(c.c);});return v;};
+openChest=async function(i,n=1){
+ n=n===10?10:1;const c=CHESTS[i];if(!c)return;
+ const names=Array.from({length:n},()=>wpick(c.d));
+ // Grant rewards once, before animation; skipping cannot reroll.
+ for(const x of names)addItem(x);
+ S.chests+=n;save();try{if(window.__qA)window.__qA('chest',n);}catch(_){}
+ const cards=(arr)=>arr.map(x=>{const it=ITEMS[x];return `<div class="rc" style="--rc:${COL[it.r]}">${itemIcon(x)}<b>${x}</b></div>`;}).join('');
+ const buttons=()=>`<div class="acts2"><button class="btn" data-act="close">Забрать</button>${S.cases[i]>0?`<button class="btn alt" data-act="chest" data-i="${i}">Ещё ×1</button>`:''}${S.cases[i]>=10?`<button class="btn gold" data-act="chest10" data-i="${i}">Ещё ×10</button>`:''}</div>`;
+ const WIN=36,STEP=113;
+ const tracks=names.map(name=>Array.from({length:45},(_,k)=>k===WIN?name:wpick(c.d)));
+ modal(`<h2>${c.n} ×${n}</h2><div class="wx-case-stage">${model(c.c)}<div class="sub" style="text-align:center">${n===10?'10 прокруток — 10 наград':'Прокрутка награды'}</div></div><div class="wx-case-roll" id="wxroll"><div class="wx-case-track" id="wxtrack">${cards(tracks[0])}</div></div><div id="wxresult" class="wx-case-result"><button class="btn alt sm" id="wxskip">Пропустить</button></div>`,{mid:1,lock:1});
+ let ended=false,idx=0,timer=null;
+ const roll=document.getElementById('wxroll'),track=document.getElementById('wxtrack'),result=document.getElementById('wxresult');
+ const clearRoll=()=>{if(timer!==null){clearTimeout(timer);timer=null;}track.style.transition='none';};
+ const reveal=()=>{
+  if(ended)return;
+  ended=true;clearRoll();document.removeEventListener('click',skipHandler,true);
+  const ordered=names.slice().sort((a,b)=>(RK[ITEMS[b].r]||0)-(RK[ITEMS[a].r]||0));
+  const best=ordered[0],bestItem=ITEMS[best];
+  const cube=document.querySelector('#modal .wx-case3d');if(cube)cube.classList.add('open');
+  roll.style.display='none';
+  result.innerHTML=n===1
+   ?`${prize(best)}<h3 style="color:${COL[bestItem.r]}">${best}</h3><div class="sub">${RN[bestItem.r]}</div>${buttons()}`
+   :`<div class="sub">Получены все ${n} наград · Лучшая: <b style="color:${COL[bestItem.r]}">${best}</b></div><div class="wx-case-grid">${names.map(name=>`<div class="wx-reward" style="--rarity:${COL[ITEMS[name].r]}">${prize(name,true)}<b>${name}</b><small>${RN[ITEMS[name].r]}</small></div>`).join('')}</div>${buttons()}`;
+  try{SFX.p((RK[bestItem.r]||0)>=4?'ult':'chest');}catch(_){}
+ };
+ // One capture listener, removed synchronously on completion. No extra async loops.
+ const skipHandler=ev=>{
+  const button=ev.target.closest?.('#wxskip');
+  if(!button||!result.contains(button))return;
+  ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();reveal();
+ };
+ document.addEventListener('click',skipHandler,true);
+ const animate=()=>{
+  if(ended||!document.getElementById('wxroll')){clearRoll();document.removeEventListener('click',skipHandler,true);return;}
+  if(idx>=n){reveal();return;}
+  track.innerHTML=cards(tracks[idx]);track.style.transition='none';track.style.transform='translate3d(0,0,0)';
+  const target=roll.clientWidth/2-(WIN*STEP+53)-((Math.random()-.5)*32);
+  void track.offsetWidth;
+  track.style.transition='transform 3.9s cubic-bezier(.08,.72,.12,1)';
+  track.style.transform=`translate3d(${target}px,0,0)`;
+  timer=setTimeout(()=>{
+   if(ended)return;
+   track.children[WIN]?.classList.add('win');idx++;
+   if(idx<n){result.innerHTML=`<div class="sub">Открыто ${idx} / ${n}</div><button class="btn alt sm" id="wxskip">Пропустить всё</button>`;timer=setTimeout(animate,280);}
+   else reveal();
+  },4150);
+ };
+ timer=setTimeout(animate,200);
+};
+})();
+</script>
+<script>
+/* WORLDX v4: deterministic case opening, no chained skip timers. */
+(()=>{
+const css=document.createElement('style');css.textContent=`
+.wx4-panel{width:100%;min-width:0;text-align:center}.wx4-stage{height:154px;display:grid;place-items:center;background:radial-gradient(ellipse,#39354a 0%,transparent 70%)}
+.wx4-object{width:126px;height:126px;position:relative;display:grid;place-items:center;transform-style:preserve-3d;animation:wx4spin 4s ease-in-out infinite alternate;filter:drop-shadow(0 12px 10px #0009)}
+.wx4-object svg{display:block!important;width:108px!important;height:108px!important;max-width:100%;max-height:100%;overflow:visible!important;position:relative;z-index:2}
+.wx4-object:before{content:'';position:absolute;inset:6px;border-radius:22px;background:linear-gradient(145deg,#41465a,#171a27);border:3px solid var(--rare);box-shadow:0 0 18px var(--rare),inset 0 0 20px #000;transform:translateZ(-9px)}
+.wx4-object:after{content:'';position:absolute;inset:6px;border:9px solid var(--rare);border-radius:22px;opacity:.4;transform:translateZ(-17px)}
+@keyframes wx4spin{from{transform:rotateY(-22deg) rotateX(9deg)}to{transform:rotateY(25deg) rotateX(-8deg)}}
+.wx4-roll{height:133px;overflow:hidden;position:relative;background:#12121e;border:2px solid #4b4961;margin:10px 0}
+.wx4-roll:after{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;background:#ffda69;box-shadow:0 0 14px #ffda69;z-index:3}
+.wx4-track{display:flex;gap:8px;width:max-content;padding:9px 0;transform:translateX(0)}
+.wx4-track .rc{flex:none;width:98px;height:110px}.wx4-track .rc svg{width:53px;height:57px}
+.wx4-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:48dvh;overflow-y:auto;margin:10px 0;overscroll-behavior:contain}
+.wx4-reward{min-width:0;background:#1a1c2b;border:2px solid var(--rare);border-radius:12px;padding:5px;overflow:hidden}
+.wx4-reward .wx4-stage{height:98px;background:none}.wx4-reward .wx4-object{width:78px;height:78px;animation-duration:5s}.wx4-reward .wx4-object svg{width:65px!important;height:65px!important}
+.wx4-reward b{font-size:12px;display:block;overflow-wrap:anywhere}.wx4-reward small{font-size:11px;color:#bbc0d6}
+.wx4-result h3{font-size:23px;margin:5px 0}.wx4-panel .acts2{flex-wrap:wrap;justify-content:center}.wx4-panel .acts2 .btn{min-width:95px}
+@media(prefers-reduced-motion:reduce){.wx4-object{animation:none}}
+`;document.head.appendChild(css);
+let session=0;
+const visual=(name)=>{const it=ITEMS[name];const color=COL[it.r]||'#e0b552';return `<div class="wx4-stage"><div class="wx4-object" style="--rare:${color}">${itemIcon(name)}</div></div>`};
+const btns=i=>`<div class="acts2"><button class="btn" data-act="close">Забрать</button>${S.cases[i]>0?`<button class="btn alt" data-act="chest" data-i="${i}">Ещё ×1</button>`:''}${S.cases[i]>=10?`<button class="btn gold" data-act="chest10" data-i="${i}">Ещё ×10</button>`:''}</div>`;
+openChest=function(i,n=1){
+ n=n===10?10:1;const c=CHESTS[i];if(!c)return;
+ const token=++session;
+ const names=Array.from({length:n},()=>wpick(c.d));
+ for(const name of names)addItem(name);
+ S.chests+=n;save();try{if(window.__qA)window.__qA('chest',n);}catch(e){}
+ const best=names.reduce((a,b)=>(RK[ITEMS[b].r]||0)>(RK[ITEMS[a].r]||0)?b:a);
+ const card=name=>`<div class="rc" style="--rc:${COL[ITEMS[name].r]}">${itemIcon(name)}<b>${name}</b></div>`;
+ const sequence=Array.from({length:36},(_,k)=>k===29?names[0]:wpick(c.d));
+ modal(`<div class="wx4-panel" id="wx4panel"><h2>${c.n} ×${n}</h2><div id="wx4case">${typeof model==='function'?model(c.c):chestSvg(c.c)}</div><div class="wx4-roll" id="wx4roll"><div class="wx4-track" id="wx4track">${sequence.map(card).join('')}</div></div><div id="wx4result"><button class="btn gold wide" id="wx4skip" type="button">${n===10?'Пропустить все 10':'Пропустить'}</button></div></div>`,{mid:1,lock:1});
+ const panel=document.getElementById('wx4panel'),track=document.getElementById('wx4track'),roll=document.getElementById('wx4roll'),result=document.getElementById('wx4result');
+ let done=false,timeout=0;
+ const finish=()=>{
+  if(done||token!==session)return;done=true;clearTimeout(timeout);
+  if(track){track.style.transition='none';track.style.transform='none';}
+  if(roll)roll.remove();
+  const caseEl=document.getElementById('wx4case');if(caseEl)caseEl.remove();
+  if(n===1){const it=ITEMS[names[0]];result.innerHTML=`<div class="wx4-result">${visual(names[0])}<h3 style="color:${COL[it.r]}">${names[0]}</h3><div class="sub">${RN[it.r]}</div>${btns(i)}</div>`;}
+  else{result.innerHTML=`<div class="wx4-result"><div class="sub">Все 10 наград получены · Лучшая: <b style="color:${COL[ITEMS[best].r]}">${best}</b></div><div class="wx4-grid">${names.map(name=>`<div class="wx4-reward" style="--rare:${COL[ITEMS[name].r]}">${visual(name)}<b>${name}</b><small>${RN[ITEMS[name].r]}</small></div>`).join('')}</div>${btns(i)}</div>`;}
+  try{SFX.p('chest');}catch(e){}
+ };
+ // Bind directly to the actual button; no global click listener or animation race.
+ const skip=document.getElementById('wx4skip');
+ skip.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();finish();},{once:true});
+ skip.addEventListener('touchend',e=>{e.preventDefault();finish();},{once:true,passive:false});
+ timeout=setTimeout(()=>{
+  if(done||token!==session||!panel.isConnected)return;
+  const step=106,target=roll.clientWidth/2-(29*step+49);
+  track.style.transition='transform 3.2s cubic-bezier(.08,.72,.12,1)';
+  track.style.transform=`translate3d(${target}px,0,0)`;
+  timeout=setTimeout(finish,3400);
+ },80);
+};
+})();
+</script>
+
+<script>
+/* WORLDX v5: чистое открытие кейсов ×1/×10, 3D-предметы, рабочий «Пропустить». */
+(()=>{
+const css=document.createElement('style');css.textContent=`
+.x5-panel{width:100%;min-width:0;text-align:center}
+.x5-roll{position:relative;overflow:hidden;margin:8px 0;background:#120d0a;border:3px solid var(--ink,#000)}
+.x5-roll:after{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1px;background:#ffda69;box-shadow:0 0 14px #ffda69;z-index:3}
+.x5-track{display:flex;gap:8px;width:max-content;padding:9px 0}
+.x5-track .rc{flex:none;width:98px;height:110px}.x5-track .rc svg{width:53px;height:57px}
+.x5-scene{perspective:520px;height:110px;display:grid;place-items:center}
+.x5-scene.big{height:170px;perspective:700px}
+.x5-obj{position:relative;width:78px;height:78px;transform-style:preserve-3d;animation:x5spin 5s linear infinite;will-change:transform}
+.x5-scene.big .x5-obj{width:118px;height:118px}
+.x5-obj .pl{position:absolute;inset:0;border-radius:16px;border:3px solid var(--rare);background:linear-gradient(145deg,#41465a,#171a27);box-shadow:0 0 14px var(--rare)}
+.x5-obj .pl.b{transform:translateZ(-10px)}.x5-obj .pl.m{transform:translateZ(-5px);opacity:.8}
+.x5-obj .pl.f{transform:translateZ(0)}
+.x5-obj .ic{position:absolute;inset:0;display:grid;place-items:center;transform:translateZ(2px)}
+.x5-obj .ic svg{width:78%!important;height:78%!important;display:block!important}
+@keyframes x5spin{from{transform:rotateY(0) rotateX(8deg)}to{transform:rotateY(360deg) rotateX(8deg)}}
+.x5-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:46dvh;overflow-y:auto;margin:10px 0;overscroll-behavior:contain}
+.x5-rw{min-width:0;background:#1a1c2b;border:2px solid var(--rare);border-radius:12px;padding:5px;overflow:hidden}
+.x5-rw b{font-size:12px;display:block;overflow-wrap:anywhere}.x5-rw small{font-size:11px;color:#bbc0d6}
+.x5-panel .acts2{flex-wrap:wrap;justify-content:center}.x5-panel .acts2 .btn{min-width:95px}
+@media(prefers-reduced-motion:reduce){.x5-obj{animation:none}}
+`;document.head.appendChild(css);
+const RK5={none:0,stone:1,common:1,iron:2,steel:3,epic:4,divine:5};
+let session=0;
+const obj=(n,big)=>{const it=ITEMS[n],c=COL[it.r]||'#e0b552';return `<div class="x5-scene${big?' big':''}"><div class="x5-obj" style="--rare:${c}"><div class="pl b"></div><div class="pl m"></div><div class="pl f"></div><div class="ic">${itemIcon(n)}</div></div></div>`;};
+const btns=i=>`<div class="acts2"><button class="btn" data-act="close">Забрать</button>${S.cases[i]>0?`<button class="btn alt" data-act="chest" data-i="${i}">Ещё ×1</button>`:''}${S.cases[i]>=10?`<button class="btn gold" data-act="chest10" data-i="${i}">Ещё ×10</button>`:''}</div>`;
+window.openChest=function(i,n){
+ n=n===10?10:1;const c=CHESTS[i];if(!c)return;
+ const token=++session;
+ const names=Array.from({length:n},()=>wpick(c.d));
+ for(const x of names)addItem(x);
+ S.chests+=n;save();try{if(window.__qA)window.__qA('chest',n);}catch(e){}
+ const best=names.reduce((a,b)=>(RK5[ITEMS[b].r]||0)>(RK5[ITEMS[a].r]||0)?b:a);
+ const WIN=29;
+ const seq=Array.from({length:36},(_,k)=>k===WIN?best:wpick(c.d));
+ const card=nm=>`<div class="rc" style="--rc:${COL[ITEMS[nm].r]}">${itemIcon(nm)}<b>${nm}</b></div>`;
+ modal(`<div class="x5-panel" id="x5p"><h2>${c.n} ×${n}</h2><div class="x5-roll" id="x5roll"><div class="x5-track" id="x5track">${seq.map(card).join('')}</div></div><div id="x5res"><button class="btn gold wide" id="x5skip" type="button">${n===10?'Пропустить все 10':'Пропустить'}</button></div></div>`,{mid:1,lock:1});
+ const track=document.getElementById('x5track'),roll=document.getElementById('x5roll'),res=document.getElementById('x5res');
+ let done=false,tm=0;
+ const finish=()=>{
+  if(done||token!==session)return;done=true;clearTimeout(tm);
+  roll.remove();
+  if(n===1){const it=ITEMS[names[0]];res.innerHTML=`<div>${obj(names[0],true)}<h3 style="color:${COL[it.r]};margin:4px 0">${names[0]}</h3><div class="sub">${RN[it.r]}${it.t==='weapon'?' · +'+it.b+' к удару':''}</div>${btns(i)}</div>`;}
+  else res.innerHTML=`<div><div class="sub">Все 10 наград получены · Лучшая: <b style="color:${COL[ITEMS[best].r]}">${best}</b></div><div class="x5-grid">${names.map(nm=>`<div class="x5-rw" style="--rare:${COL[ITEMS[nm].r]}">${obj(nm,false)}<b>${nm}</b><small>${RN[ITEMS[nm].r]}</small></div>`).join('')}</div>${btns(i)}</div>`;
+  try{SFX.p('chest');}catch(e){}
+  try{hud();render();}catch(e){}
+ };
+ document.getElementById('x5skip').onclick=e=>{e.preventDefault();finish();};
+ tm=setTimeout(()=>{
+  if(done||token!==session||!roll.isConnected)return;
+  track.style.transition='transform 3.2s cubic-bezier(.08,.72,.12,1)';
+  track.style.transform=`translate3d(${roll.clientWidth/2-(WIN*106+49)}px,0,0)`;
+  tm=setTimeout(finish,3500);
+ },80);
+};
+})();
+</script>
+<script>
+/* Ультра: пока открыто меню — пауза бесконечных анимаций у невидимых карточек и лишних перерисовок */
+(()=>{
+ if(!('IntersectionObserver' in window))return;
+ const io=new IntersectionObserver(es=>es.forEach(e=>{e.target.style.animationPlayState=e.isIntersecting?'':'paused';e.target.querySelectorAll&&e.target.querySelectorAll('.bob').forEach(b=>b.style.animationPlayState=e.isIntersecting?'':'paused');}),{rootMargin:'120px'});
+ const watch=()=>{if(document.documentElement.dataset.graphics!=='ultra')return;document.querySelectorAll('#view .card,#view .wc,#view .foe,#view .tile').forEach(n=>{if(!n._wxo){n._wxo=1;io.observe(n);}});};
+ let t=0;const mo=new MutationObserver(()=>{clearTimeout(t);t=setTimeout(watch,60);});
+ const v=document.getElementById('view');if(v)mo.observe(v,{childList:true});watch();
+})();
 </script>
 </body>
 </html>
