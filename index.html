@@ -246,6 +246,53 @@ body.g3on::before{display:none}
 .bt-top .fsb{margin-left:auto}
 @media(min-width:700px){#app{max-width:880px}.nav{max-width:880px}.g3 #bs{width:140px;height:140px}.g3 #bp{width:92px;height:92px;right:calc(180px + env(safe-area-inset-right,0px))}.g3joy{width:150px;height:150px}.g3joy i{width:64px;height:64px}}
 .hud{padding-top:calc(var(--tg-content-safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px) + env(safe-area-inset-top,0px) + 8px)}
+
+/* ===== mobile fullscreen + orientation layout patch ===== */
+:root{--wx-vh:100dvh;--wx-safe-b:env(safe-area-inset-bottom,0px);--wx-safe-t:env(safe-area-inset-top,0px)}
+html,body{width:100%;height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
+#app{height:var(--wx-vh);min-height:0;height:100dvh;height:var(--wx-vh);max-width:560px;padding-bottom:0}
+#view{min-height:0;min-width:0;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:calc(76px + var(--wx-safe-b))}
+.nav{bottom:0;padding-bottom:max(var(--wx-safe-b),var(--tg-safe-area-inset-bottom,0px));box-sizing:content-box}
+.nav button{min-width:0;min-height:58px;touch-action:manipulation}
+button{touch-action:manipulation}
+.modal{padding: max(8px,var(--wx-safe-t)) 10px max(8px,var(--wx-safe-b));overflow:auto}
+.sheet{max-height:calc(var(--wx-vh) - var(--wx-safe-t) - var(--wx-safe-b) - 16px);overscroll-behavior:contain}
+#battle{height:var(--wx-vh);height:100dvh;height:var(--wx-vh);max-height:var(--wx-vh);box-sizing:border-box;touch-action:manipulation}
+#battle .bt-top{padding-top:2px}
+#battle .acts{flex-shrink:0}
+#battle .pbar{flex-shrink:0}
+.g3 .g3cv{width:100%;height:100%;inset:0}
+@media (orientation:landscape) and (max-height:600px){
+  #app{max-width:none;width:100%;}
+  .hud{gap:7px;padding:calc(max(var(--wx-safe-t),var(--tg-safe-area-inset-top,0px)) + 3px) 9px 5px;min-height:48px}
+  .emblem{width:36px;height:36px;font-size:19px}
+  .hud-name{font-size:18px}.xptxt{font-size:10px}.purse{font-size:17px;padding:2px 7px}
+  main{padding:8px 10px calc(58px + var(--wx-safe-b));}
+  .ttl{font-size:26px;margin-bottom:9px}.h3{font-size:19px;margin:12px 2px 7px}
+  .wc{margin-bottom:9px}.wc .bn{height:84px}.wc-i{padding:7px 9px}.wc-i b{font-size:20px}
+  .card{padding:9px;margin-bottom:8px}
+  .nav{max-width:none;width:100%;padding-bottom:var(--wx-safe-b)}
+  .nav button{min-height:43px;padding:4px 0 3px;gap:1px;font-size:9px;letter-spacing:.3px}
+  .nav button svg{width:19px;height:19px}
+  #battle{max-width:none;width:100%;padding:calc(max(var(--wx-safe-t),var(--tg-safe-area-inset-top,0px)) + 4px) max(8px,var(--wx-safe-r,0px)) calc(max(var(--wx-safe-b),var(--tg-safe-area-inset-bottom,0px)) + 5px)}
+  .bt-title b{font-size:22px}.bt-title small{font-size:10px}
+  .bar{height:21px}.ebar{margin-top:6px}
+  .spr{width:min(35vw,44dvh,230px)}.spr.boss{width:min(40vw,50dvh,280px)}
+  .blog{min-height:24px;font-size:12px;padding-bottom:3px}
+  .acts{margin-top:5px;gap:7px}.act{width:65px;padding:4px 2px}.act svg{width:23px;height:23px}
+  .strike{min-height:56px;font-size:28px}
+  .g3 #bs{width:clamp(64px,15dvh,92px);height:clamp(64px,15dvh,92px);right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(var(--wx-safe-b) + 28px);font-size:23px}
+  .g3 #bp{width:clamp(48px,11dvh,66px);height:clamp(48px,11dvh,66px);right:calc(86px + env(safe-area-inset-right,0px));bottom:calc(var(--wx-safe-b) + 24px)}
+  .g3 .pbar{bottom:calc(var(--wx-safe-b) + 4px)}
+  .g3 .blog{bottom:calc(var(--wx-safe-b) + 105px);font-size:12px}
+  .g3joy{width:clamp(72px,19dvh,100px);height:clamp(72px,19dvh,100px);left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(var(--wx-safe-b) + 20px)}
+  .g3joy i{width:42px;height:42px}
+  .g3 .bt-top,.g3 .ebar{padding-left:9px;padding-right:9px}
+  .sheet{max-width:620px;padding:11px}
+}
+@media (orientation:landscape) and (min-height:601px){#app,.nav{max-width:none}}
+@media (max-width:380px) and (orientation:portrait){.nav button{font-size:9px}.nav button svg{width:22px;height:22px}.purse{padding-left:5px;padding-right:6px;font-size:18px}}
+
 </style>
 </head>
 <body>
@@ -2999,6 +3046,30 @@ openChest=async function(i,n){n=n||1;const c=CHESTS[i],names=[];
 document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('[data-act="chest10"]');if(!b)return;ev.stopPropagation();ev.preventDefault();const i=+b.dataset.i;if((S.cases[i]||0)<10)return toast('Нужно 10 сундуков');S.cases[i]-=10;save();openChest(i,10);},true);
 const rn0=render;render=function(){const r=rn0.apply(this,arguments);document.querySelectorAll('button[data-act="chest"]').forEach(b=>{const i=+b.dataset.i;if((S.cases[i]||0)>=10&&!b.parentNode.querySelector('[data-act="chest10"]')){const x=document.createElement('button');x.className='btn gold';x.dataset.act='chest10';x.dataset.i=i;x.textContent='Открыть ×10';b.after(x);}});return r;};
 })();
+
+/* Keep the app aligned with the real visible viewport (Telegram/browser bars and rotation). */
+(function wxViewportFix(){
+  let raf=0;
+  function syncViewport(){
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>{
+      const vv=window.visualViewport;
+      const h=Math.round((vv&&vv.height)||window.innerHeight||document.documentElement.clientHeight||600);
+      document.documentElement.style.setProperty('--wx-vh',h+'px');
+      document.documentElement.style.setProperty('--wx-vw',Math.round((vv&&vv.width)||window.innerWidth||360)+'px');
+      const b=document.getElementById('battle');
+      if(b){b.style.height=h+'px';b.style.maxHeight=h+'px';}
+      document.body.classList.toggle('wx-landscape',window.matchMedia('(orientation: landscape)').matches);
+    });
+  }
+  window.addEventListener('resize',syncViewport,{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(syncViewport,80),{passive:true});
+  if(window.visualViewport){window.visualViewport.addEventListener('resize',syncViewport,{passive:true});window.visualViewport.addEventListener('scroll',syncViewport,{passive:true});}
+  if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',()=>setTimeout(syncViewport,80));
+  document.addEventListener('fullscreenchange',syncViewport);document.addEventListener('webkitfullscreenchange',syncViewport);
+  syncViewport();setTimeout(syncViewport,250);setTimeout(syncViewport,900);
+})();
+
 </script>
 </body>
 </html>
