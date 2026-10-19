@@ -379,7 +379,10 @@ html[data-graphics=ultra] #view,html[data-graphics=ultra] .x5-grid{-webkit-overf
 html[data-graphics=ultra] #view .spr .bob{animation-duration:3.6s}
 @media(prefers-reduced-motion:reduce){html[data-graphics=ultra] #view *{animation:none!important}}
 </style>
-</head>
+<style id="wx-online-style">
+.wx-online{position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#101426,#201527 65%,#0c0907);color:#eee7d7;overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px 35px;font-family:var(--bd)}
+.wx-online-inner{max-width:650px;margin:auto}.wx-online h1{font:38px var(--hd);margin:8px 0 14px}.wx-online .card{border-radius:15px;background:#202036}.wx-online input{width:100%;font:700 20px var(--bd);padding:13px;color:#fff;background:#101326;border:2px solid #635576;border-radius:10px;margin:7px 0 12px}.wx-online .btn{border-radius:11px}.wx-online .wx-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.wx-online .wx-person{background:#29283d;border:1px solid #625676;border-radius:12px;padding:10px;min-width:0}.wx-online .wx-person .wx-avatar{font-size:30px}.wx-online .wx-boss{height:240px;position:relative;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 70%,#5d3330,#131423 72%);border:2px solid #685278;border-radius:18px;overflow:hidden;perspective:600px}.wx-online .wx-boss .wx-model{width:205px;height:205px;animation:wx-bossfloat 3s ease-in-out infinite;filter:drop-shadow(0 12px 13px #0008)}.wx-online .wx-boss .wx-model img{width:100%;height:100%;object-fit:contain}.wx-online .wx-boss .wx-model svg{width:100%;height:100%}@keyframes wx-bossfloat{50%{transform:translateY(-10px) rotateY(12deg)}}.wx-online .wx-hp{height:23px;border:2px solid #000;border-radius:10px;overflow:hidden;background:#371a26}.wx-online .wx-hp>i{display:block;height:100%;background:linear-gradient(90deg,#b32d39,#ff8c4d);transition:width .2s}.wx-online .wx-team3d{display:flex;justify-content:space-around;gap:5px;margin-top:-28px;position:relative;z-index:1;perspective:400px}.wx-online .wx-hero3d{width:60px;text-align:center;transform:rotateX(10deg);font-size:11px;text-shadow:1px 2px #000}.wx-online .wx-hero3d .figure{font-size:44px;filter:drop-shadow(0 4px 4px #000);animation:wx-bossfloat 2.8s infinite}.wx-online .wx-hero3d:nth-child(2) .figure{animation-delay:.6s}.wx-online .wx-hero3d:nth-child(3) .figure{animation-delay:1.2s}.wx-online .wx-hero3d:nth-child(4) .figure{animation-delay:1.8s}.wx-online .wx-log{min-height:30px;color:#d9c9a5;text-align:center;margin:10px 0}.wx-online .wx-status{color:#c7b7d4;font-size:13px;margin:8px 0}
+</style></head>
 <body>
 <div id="app">
   <header class="hud">
@@ -3671,5 +3674,68 @@ window.openChest=function(i,n){
  const v=document.getElementById('view');if(v)mo.observe(v,{childList:true});watch();
 })();
 </script>
-</body>
-</html>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+.wx-online .wx-arena{height:310px;position:relative;overflow:hidden;border:2px solid #74546b;border-radius:16px;background:radial-gradient(ellipse at 50% 70%,#613a35,#141426 75%);perspective:750px}
+.wx-online .wx-arena .wx-model{position:absolute;top:5px;left:50%;width:175px;height:175px;transform:translateX(-50%);animation:wx-bossfloat 3s ease-in-out infinite}
+.wx-online .wx-arena .wx-model img,.wx-online .wx-arena .wx-model svg{width:100%;height:100%;object-fit:contain}
+.wx-online .wx-party{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:space-evenly;gap:3px;align-items:end}
+.wx-online .wx-fighter{width:24%;text-align:center;font-size:11px;text-shadow:0 2px 3px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wx-online .wx-body{height:65px;position:relative;transform-style:preserve-3d;transform:rotateY(-22deg);animation:wx-bossfloat 3s ease-in-out infinite}
+.wx-online .wx-body span{display:block;position:absolute;left:50%;transform:translateX(-50%);background:#e8832a;border:2px solid #24120a;border-radius:7px}
+.wx-online .wx-body .head{top:1px;width:23px;height:23px;border-radius:50%;background:#e9c4a1}.wx-online .wx-body .torso{top:25px;width:33px;height:29px;background:#778ab2}.wx-online .wx-body .legs{top:51px;width:28px;height:14px;background:#48455c}
+.wx-online .wx-hitfx{animation:wx-hitfx .25s ease-out}@keyframes wx-hitfx{50%{filter:brightness(2);transform:translateX(-50%) scale(1.08)}}
+.wx-online .wx-actions{display:flex;gap:8px;flex-wrap:wrap}.wx-online .wx-actions button{flex:1;min-width:120px}
+.wx-online .wx-status{overflow-wrap:anywhere}
+</style>
+<script>
+/* WORLDX P2P: PeerJS 1.5.4, host-authoritative star; no Firebase. */
+const WX_P2P_CONFIG={
+  // Optional compatible WebSocket relay URL; requires your own server implementing this game's messages.
+  websocketUrl:'',
+  // Optional TURN credentials from your own provider:
+  iceServers:[{urls:'stun:stun.l.google.com:19302'}]
+};
+(function(){
+'use strict';
+const root=document.createElement('div');root.id='wx-online';root.className='wx-online hidden';document.body.appendChild(root);
+const $=id=>root.querySelector('#'+id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rand=()=>Math.random().toString(36).slice(2,8).toUpperCase();
+const name=()=>String((typeof S!=='undefined'&&(S.name||S.nick))||document.getElementById('pname')?.textContent||'Странник').slice(0,24);
+const boss={n:'Повелитель вулкана',spr:'demon',pal:['#a42a18','#4a0f08','#f08a2a','#ffd23a'],boss:1,rl:30};
+let peer=null,host=false,code='',selfId='',conns=new Map(),hostConn=null,ws=null,voiceStream=null,calls=new Map(),state=null,lastHit=0,seq=0,hostTick=null,joined=false,paintTimer=0;
+const mkState=()=>({status:'lobby',boss:{hp:2400,maxHp:2400},players:{},updated:Date.now(),seq:0});
+const status=t=>{let e=$('wx-status');if(e)e.textContent=t;};
+function player(id,n){return {id,name:String(n||'Странник').slice(0,24),damage:0,x:0,z:0,hp:100};}
+function roomFromUrl(){const p=new URLSearchParams(location.search);const t=p.get('room')||p.get('tgWebAppStartParam')||window.Telegram?.WebApp?.initDataUnsafe?.start_param||'';return /^wx_[a-z0-9]{6}$/i.test(t)?t.slice(3).toUpperCase():/^[a-z0-9]{6}$/i.test(t)?t.toUpperCase():'';}
+function shareLink(){const u=new URL(location.href);u.searchParams.set('room',code);return u.toString();}
+function home(message=''){root.innerHTML=`<div class="wx-online-inner"><button class="btn alt sm" id="wx-exit">← В игру</button><h1>⚔ Онлайн-рейд P2P</h1><div class="card"><b>Совместный босс · до 4 игроков</b><p class="sub">Хост управляет боем. Для приглашения отправь код комнаты или ссылку.</p><button class="btn wide" id="wx-create">Создать комнату</button><p>Код комнаты</p><input id="wx-code" maxlength="6" placeholder="ABC123" autocomplete="off" value="${esc(roomFromUrl())}"><button class="btn alt wide" id="wx-join">Присоединиться</button><p class="wx-status" id="wx-status">${esc(message||'Firebase не требуется. Нужен интернет для PeerJS.')}</p></div></div>`;
+$('wx-exit').onclick=close;$('wx-create').onclick=create;$('wx-join').onclick=()=>join($('wx-code').value.trim().toUpperCase());}
+function closeNet(){clearInterval(hostTick);hostTick=null;for(const c of calls.values())try{c.close()}catch(e){}calls.clear();for(const c of conns.values())try{c.close()}catch(e){}conns.clear();try{hostConn?.close()}catch(e){}hostConn=null;try{peer?.destroy()}catch(e){}peer=null;try{ws?.close()}catch(e){}ws=null;if(voiceStream){voiceStream.getTracks().forEach(t=>t.stop());voiceStream=null;}host=false;joined=false;code='';selfId='';state=null;}
+function close(){closeNet();root.classList.add('hidden');root.innerHTML='';}
+function peerCreate(id){return new Promise((resolve,reject)=>{if(!window.Peer)return reject(Error('PeerJS не загрузился. Проверь интернет.'));let p=new Peer(id,{debug:0,config:{iceServers:WX_P2P_CONFIG.iceServers}}),done=false;const timeout=setTimeout(()=>{if(!done){done=true;p.destroy();reject(Error('Тайм-аут подключения PeerJS'))}},12000);p.on('open',pid=>{if(done)return;done=true;clearTimeout(timeout);resolve(p)});p.on('error',e=>{if(!done){done=true;clearTimeout(timeout);reject(e)}else status('Ошибка сети: '+e.message)});});}
+function send(c,obj){try{if(c?.open)c.send(obj)}catch(e){}}
+function broadcast(obj){for(const c of conns.values())send(c,obj)}
+function sync(){if(!host||!state)return;state.updated=Date.now();state.seq=++seq;broadcast({type:'state',state});schedulePaint()}
+function schedulePaint(){if(paintTimer)return;paintTimer=setTimeout(()=>{paintTimer=0;paint()},80)}
+function hostMessage(id,m){if(!m||typeof m!=='object')return;if(m.type==='join'){if(!state.players[id]&&Object.keys(state.players).length>=4){send(conns.get(id),{type:'error',message:'Комната заполнена'});conns.get(id)?.close();return}state.players[id]=player(id,m.name);sync();return}
+if(!state.players[id])return;if(m.type==='attack'&&state.status==='battle'){const p=state.players[id],now=Date.now();if(now-(p.lastAttack||0)<650)return;p.lastAttack=now;const damage=18;state.boss.hp=Math.max(0,state.boss.hp-damage);p.damage+=damage;if(!state.boss.hp)state.status='done';sync();}
+if(m.type==='move'){let p=state.players[id];p.x=Math.max(-5,Math.min(5,Number(m.x)||0));p.z=Math.max(-5,Math.min(5,Number(m.z)||0));sync();}}
+function wireConn(c){if(!c||conns.has(c.peer))return;conns.set(c.peer,c);c.on('data',m=>hostMessage(c.peer,m));c.on('close',()=>{conns.delete(c.peer);if(state?.players[c.peer]){delete state.players[c.peer];sync()}});c.on('open',()=>send(c,{type:'hello',code}));}
+function wireVoice(){peer.on('call',call=>{if(!voiceStream){call.close();return}call.answer(voiceStream);attachCall(call)});}
+function attachCall(call){calls.set(call.peer,call);call.on('stream',stream=>{let a=document.getElementById('wx-audio-'+call.peer.replace(/[^a-z0-9-]/gi,''));if(!a){a=document.createElement('audio');a.autoplay=true;a.id='wx-audio-'+call.peer.replace(/[^a-z0-9-]/gi,'');document.body.appendChild(a)}a.srcObject=stream;a.play().catch(()=>{})});call.on('close',()=>calls.delete(call.peer));}
+async function toggleVoice(){if(voiceStream){voiceStream.getTracks().forEach(t=>t.stop());voiceStream=null;for(let c of calls.values())c.close();calls.clear();schedulePaint();return}try{voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});if(host){for(let id of conns.keys())attachCall(peer.call(id,voiceStream))}else if(hostConn?.open)attachCall(peer.call(hostConn.peer,voiceStream));schedulePaint()}catch(e){status('Микрофон: '+e.message)}}
+async function create(){closeNet();home('Создаём комнату…');code=rand();host=true;try{peer=await peerCreate('worldx-'+code.toLowerCase());selfId=peer.id;state=mkState();state.players[selfId]=player(selfId,name());peer.on('connection',wireConn);wireVoice();joined=true;hostTick=setInterval(()=>{if(host&&state?.status==='battle')sync()},1500);paint()}catch(e){closeNet();home('Не удалось создать комнату: '+e.message)}}
+async function join(c){if(!/^[A-Z0-9]{6}$/.test(c)){status('Введите 6 символов кода');return}closeNet();home('Подключаемся…');code=c;try{peer=await peerCreate('worldx-player-'+rand().toLowerCase());selfId=peer.id;wireVoice();hostConn=peer.connect('worldx-'+code.toLowerCase(),{reliable:true});hostConn.on('open',()=>{joined=true;send(hostConn,{type:'join',name:name()});status('Соединение установлено. Ждём состояние комнаты…')});hostConn.on('data',m=>{if(m?.type==='state'){state=m.state;schedulePaint()}else if(m?.type==='error')status(m.message)});hostConn.on('close',()=>{joined=false;home('Хост отключился. Комната закрыта.')});hostConn.on('error',e=>status('Ошибка соединения: '+e.message));setTimeout(()=>{if(!joined)status('Хост недоступен. Проверь код и соединение.')},11000)}catch(e){closeNet();home('Не удалось подключиться: '+e.message)}}
+function attack(){if(!state||state.status!=='battle')return;let now=Date.now();if(now-lastHit<650)return;lastHit=now;if(host)hostMessage(selfId,{type:'attack'});else send(hostConn,{type:'attack'});}
+function setBattle(){if(!host||!state)return;state.status='battle';state.boss.hp=state.boss.maxHp;for(let p of Object.values(state.players))p.damage=0;sync()}
+function move(dx){if(!state?.players[selfId])return;let p=state.players[selfId],x=Math.max(-5,Math.min(5,(p.x||0)+dx));if(host)hostMessage(selfId,{type:'move',x,z:0});else send(hostConn,{type:'move',x,z:0});}
+function paint(){if(root.classList.contains('hidden')||!state)return;let players=Object.values(state.players||{}),hp=state.boss.hp,max=state.boss.maxHp,visual='';try{if(typeof MOB3D==='function')visual=MOB3D(boss)}catch(e){}if(!visual)visual='<div style="font-size:110px">👹</div>';
+root.innerHTML=`<div class="wx-online-inner"><button class="btn alt sm" id="wx-leave">← Выйти</button><h1>🔥 Онлайн-босс</h1><div class="card"><b>Комната ${esc(code)} · ${players.length}/4</b><div class="wx-status">${state.status==='lobby'?'Ожидание отряда':state.status==='battle'?'Бой идёт':'Босс побеждён!'}</div><div class="wx-hp"><i style="width:${100*hp/max}%"></i></div><p style="text-align:center">${hp} / ${max} HP</p><div class="wx-arena"><div class="wx-model">${visual}</div><div class="wx-party">${players.map((p,i)=>`<div class="wx-fighter"><div class="wx-body" style="transform:translateX(${(p.x||0)*4}px) rotateY(-22deg);animation-delay:${i*.4}s"><span class="head"></span><span class="torso"></span><span class="legs"></span></div>${esc(p.name)}</div>`).join('')}</div></div><div class="wx-actions" style="margin-top:12px">${state.status==='battle'?'<button class="btn gold" id="wx-hit">⚔ Атаковать</button><button class="btn alt" id="wx-left">◀</button><button class="btn alt" id="wx-right">▶</button>':host?'<button class="btn gold" id="wx-start">'+(state.status==='done'?'Новый бой':'Начать бой')+'</button>':'<p class="sub">Ждём хоста…</p>'}</div><div class="wx-actions" style="margin-top:10px"><button class="btn alt sm" id="wx-voice">🎙 ${voiceStream?'Выключить':'Включить'} голос</button><button class="btn alt sm" id="wx-copy">🔗 Пригласить</button></div><p class="wx-status" id="wx-status">${esc(voiceStream?'Микрофон включён':'Голосовой чат по желанию')}</p></div><h2 class="h3">Участники</h2><div class="wx-players">${players.map(p=>`<div class="wx-person"><b>${esc(p.name)}${p.id===selfId?' (ты)':''}</b><div class="sub">Урон: ${Math.round(p.damage||0)}</div></div>`).join('')}</div><p class="wx-status">Хост управляет боем. При выходе хоста комната закрывается. Награды в основной игре пока не начисляются.</p></div>`;
+$('wx-leave').onclick=close;let b=$('wx-hit');if(b)b.onclick=attack;b=$('wx-start');if(b)b.onclick=setBattle;b=$('wx-left');if(b)b.onclick=()=>move(-1);b=$('wx-right');if(b)b.onclick=()=>move(1);$('wx-voice').onclick=toggleVoice;$('wx-copy').onclick=async()=>{let link=shareLink();try{if(navigator.share)await navigator.share({title:'WORLDX',text:'Комната '+code,url:link});else if(navigator.clipboard)await navigator.clipboard.writeText(link);status('Ссылка на комнату: '+link)}catch(e){status(link)}};
+}
+window.WXOnline={open(){root.classList.remove('hidden');home();},close};
+function addEntry(){if(typeof ACT==='undefined'||typeof vMore!=='function')return;ACT.wxonline=()=>window.WXOnline.open();const old=vMore;vMore=function(){return `<div class="card"><b style="font:26px var(--hd)">⚔ Онлайн-рейд P2P</b><p class="sub">PeerJS · комнаты · совместный босс · голосовой чат</p><button class="btn gold wide" data-act="wxonline">Играть онлайн</button></div>`+old();};}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addEntry);else addEntry();
+})();
+</script></body></html>
