@@ -357,6 +357,11 @@ html[data-graphics=low] .wc{box-shadow:none!important;transform:none!important}
 html[data-graphics=ultra] .wc{box-shadow:0 18px 50px -14px var(--ac,#ff8a3d),inset 0 0 0 1px rgba(255,255,255,.12)!important}
 html[data-graphics=ultra] .card{box-shadow:0 18px 45px -20px rgba(255,135,70,.25)!important}
 html[data-graphics=ultra] .btn:not(.alt){filter:saturate(1.2) brightness(1.08)}
+/* Оптимизация меню: сохраняем оформление и иллюстрации */
+#view .wc,#view .foe,#view .card,#view .tile{content-visibility:auto;contain-intrinsic-size:auto 155px}
+#view .wc{contain-intrinsic-size:auto 200px}
+html[data-graphics="low"] #view *,html[data-graphics="low"] #view *::before,html[data-graphics="low"] #view *::after{animation:none!important;transition:none!important}
+html[data-graphics="low"] .wc,html[data-graphics="low"] .card{box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -3370,15 +3375,15 @@ function build(id){if(id in cache)return cache[id];let out=null;const prev=rr();
   out={root,boss,bg:T.bg};}catch(e){out=null;}
  finally{if(prev)MD.init(prev);}
  return cache[id]=out;}
-function draw(cv,now){const o=build(cv.dataset.w);if(!o)return false;const rc=cv.getBoundingClientRect();if(!rc.width)return true;if(rc.bottom<0||rc.top>innerHeight)return true;
- const w=520,h=Math.round(w*rc.height/rc.width);if(h!==ch){cv0.style.width=w+'px';cv0.style.height=h+'px';ch=h;}
+function draw(cv,now){const rc=cv.getBoundingClientRect();if(!rc.width)return true;if(rc.bottom<0||rc.top>innerHeight)return true;const o=build(cv.dataset.w);if(!o)return false;
+ const w=WXGraphics.get()==='ultra'?480:WXGraphics.get()==='low'?220:360,h=Math.round(w*rc.height/rc.width);if(h!==ch){cv0.style.width=w+'px';cv0.style.height=h+'px';ch=h;}
  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
  const t=(now-t0)/1000,a=t*.28+cv.dataset.w.length,c=R2.cam;c.fov=38*PI/180;c.near=.5;c.far=240;c.target=[0,.5,0];c.eye=[Math.sin(a)*23,6.5,Math.cos(a)*23];R2.bg=o.bg;R2.t=t;
  if(o.boss){o.boss.r=[0,a,0];try{o.boss.anim&&o.boss.anim({t,dt:.033,mv:0,ph:0,wind:0,strike:0,swing:-1,dead:-1,rage:0});}catch(_){}}
  R2.updParts&&R2.updParts(.033);R2.frame(o.root);cv.getContext('2d').drawImage(cv0,0,0,w,h);return true;}
 function loop(){raf=0;if((typeof B!=='undefined'&&B)||document.hidden)return;const modal=document.getElementById('modal');if(modal&&!modal.classList.contains('hidden')){raf=requestAnimationFrame(loop);return;}const list=document.querySelectorAll('canvas.w3');if(!list.length)return;const now=performance.now();
  if(WXGraphics.get()==='low'){list.forEach(cv=>cv.classList.remove('on'));return;}
- if(now-lt>(WXGraphics.get()==='ultra'?32:50)){lt=now;list.forEach(cv=>{try{cv.classList.toggle('on',draw(cv,now)!==false);}catch(_){cv.classList.remove('on');}});}
+ if(now-lt>(WXGraphics.get()==='ultra'?55:110)){lt=now;list.forEach(cv=>{try{cv.classList.toggle('on',draw(cv,now)!==false);}catch(_){cv.classList.remove('on');}});}
  raf=requestAnimationFrame(loop);}
 function wake(){document.querySelectorAll('.wc').forEach(c=>c.style.setProperty('--ac',AC[c.dataset.id]||'#ff9a4a'));if(!raf)raf=requestAnimationFrame(loop);}
 const rn8=render;render=function(){const r=rn8.apply(this,arguments);setTimeout(wake,30);return r;};
