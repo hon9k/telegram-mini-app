@@ -4369,10 +4369,10 @@ const raidFoe=()=>({n:'Пожиратель Звёзд',rl:Math.max(10,S.level+4
 
 /* ================= 2. Сетевое ядро: Host-Authoritative звезда ================= */
 const NET={role:null,code:'',peer:null,ws:null,link:null,conns:{},players:{},pl:[],me:'',started:false,R:{hp:0,max:0,pl:[]},voice:false,mic:null,stream:null,calls:{},audios:{},phs:{},myPid:null,lost:0};
-const myInfo=()=>{const h=hero();return{n:NAME||'Игрок',lv:S.level,dps:Math.max(10,Math.round((h.min+h.max)/2*(1+h.crit/100)*1.54)),mx:h.max*2};};
+const myInfo=()=>{const h=hero();const w=S.equip.weapon?ITEMS[S.equip.weapon]:null,ar=S.equip.armor?ITEMS[S.equip.armor].r:'none';return{g:{wk:w?(w.m||w.k):'sword',r:w?w.r:'stone',ar},n:NAME||'Игрок',lv:S.level,dps:Math.max(10,Math.round((h.min+h.max)/2*(1+h.crit/100)*1.54)),mx:h.max*2};};
 const send=(id,m)=>{const c=NET.conns[id];if(c)c.send(m);};
 const bcast=m=>{for(const id in NET.conns)NET.conns[id].send(m);};
-const pubP=()=>Object.values(NET.players).map(p=>({id:p.id,n:p.n,lv:p.lv,hp:Math.round(p.hp),mhp:Math.round(p.mhp),dead:p.dead,dmg:Math.round(p.dmg),pid:p.pid,host:p.id==='host'?1:0}));
+const pubP=()=>Object.values(NET.players).map(p=>({g:p.g,pos:p.pos,id:p.id,n:p.n,lv:p.lv,hp:Math.round(p.hp),mhp:Math.round(p.mhp),dead:p.dead,dmg:Math.round(p.dmg),pid:p.pid,host:p.id==='host'?1:0}));
 const getPl=()=>NET.role==='host'?pubP():NET.pl;
 const pushLobby=()=>{bcast({t:'lobby',pl:pubP(),code:NET.code,started:NET.started});lobbyRefresh();voiceSync();};
 
@@ -4388,10 +4388,11 @@ function openHostWS(){return new Promise(res=>{try{const ws=new WebSocket(WXNET.
   setTimeout(()=>res(false),5000);}catch(e){res(false)}});}
 function onHost(id,m){if(!m||!m.t)return;const P=NET.players;
  if(m.t==='join'){if(NET.started)return send(id,{t:'deny',r:'Бой уже идёт'});if(Object.keys(P).length>=WXNET.max)return send(id,{t:'deny',r:'Комната полна'});
-  P[id]={id,pid:m.pid||null,n:String(m.n||'Игрок').slice(0,16),lv:+m.lv||1,dps:Math.min(1e6,Math.max(10,+m.dps||50)),mx:Math.min(1e7,Math.max(10,+m.mx||100)),hp:0,mhp:0,dead:0,dmg:0,lh:0};
+  P[id]={id,pid:m.pid||null,n:String(m.n||'Игрок').slice(0,16),lv:+m.lv||1,dps:Math.min(1e6,Math.max(10,+m.dps||50)),g:m.g||null,mx:Math.min(1e7,Math.max(10,+m.mx||100)),hp:0,mhp:0,dead:0,dmg:0,lh:0};
   send(id,{t:'welcome',id,code:NET.code,tr:NET.conns[id]&&NET.conns[id].tr});pushLobby();}
  else if(m.t==='hit')hostHit(id,+m.d);
  else if(m.t==='p'){const p=P[id];if(p){p.hp=+m.hp||0;p.mhp=+m.mhp||0;}}
+ else if(m.t==='pos'){const p=P[id];if(p)p.pos={x:+m.x||0,z:+m.z||0,a:+m.a||0,mv:+m.mv||0,sw:+m.sw};}
  else if(m.t==='dead'){const p=P[id];if(p)p.dead=1;}
  else if(m.t==='bye')dropPlayer(id);}
 function dropPlayer(id){if(NET.players[id]){delete NET.players[id];}if(NET.conns[id]){try{NET.conns[id].close()}catch(e){}delete NET.conns[id];}if(NET.role==='host')pushLobby();}
@@ -4405,7 +4406,7 @@ function startRaid(){const me=NET.players.host;Object.assign(me,myInfo());const 
 function hostLoop(){if(!NET.started||NET.role!=='host')return;const R=NET.R,me=NET.players.host;
  if(B&&B.raid){me.hp=B.php;me.mhp=B.hmax;}
  const f=R.hp/R.max;[.66,.33,.12].forEach((th,i)=>{if(f<th&&!NET.phs[i]){NET.phs[i]=1;bcast({t:'ph',n:i+1});onPhase(i+1);}});
- const pl=pubP();bcast({t:'s',hp:Math.round(R.hp),mx:R.max,pl});onState({hp:R.hp,mx:R.max,pl});
+ const pl=pubP();const bs=B&&B.raid&&S3()?{x:S3().fx,z:S3().fz,a:S3().fang}:null;bcast({t:'s',hp:Math.round(R.hp),mx:R.max,pl,b:bs});onState({hp:R.hp,mx:R.max,pl,b:bs});
  if(R.hp<=0)endRaid(true);else if(!Object.values(NET.players).some(p=>!p.dead))endRaid(false);}
 function endRaid(win){clearInterval(hostT);NET.started=false;const pl=pubP();bcast({t:'end',win,pl});onEnd(win,pl);Object.values(NET.players).forEach(p=>{p.dead=0;p.hp=0});setTimeout(pushLobby,500);}
 
@@ -4475,7 +4476,7 @@ function raidSetup(){const R=NET.R;B.raid=1;B.localHp=B.es.hp;B.es=Object.assign
   if(NET.role==='host'){Object.assign(NET.players.host,{hp:m.hp,mhp:m.mhp});}else if(NET.link)NET.link.send(m);},400);hudDraw();}
 function stopP(){clearInterval(NET.pi);NET.pi=0;}
 function hudDraw(){const el=document.getElementById('raidhud');if(!el)return;el.innerHTML=(NET.R.pl||[]).map(p=>`<div class="rdp ${p.dead?'x':''}"><span>${esc(p.n)}</span><i><u style="width:${p.mhp?Math.max(0,p.hp/p.mhp*100):0}%"></u></i></div>`).join('');}
-function onState(s){NET.R.hp=s.hp;NET.R.max=s.mx;NET.R.pl=s.pl;hudDraw();if(B&&B.raid&&!B.over){B.es.hp=s.mx;}}
+function onState(s){NET.R.b=s.b;NET.R.hp=s.hp;NET.R.max=s.mx;NET.R.pl=s.pl;hudDraw();if(B&&B.raid&&!B.over){B.es.hp=s.mx;}}
 function onPhase(n){if(!B||!B.raid||B.over)return;const T=['Звёздный гнев','Затмение','Последний вздох'][n-1];evt('ФАЗА '+n+': '+T.toUpperCase(),'rg');say('Пожиратель Звёзд: «'+T+'». Его удары сильнее!');B.es.dmg=Math.round(B.es.dmg*1.12);try{G3.rageUp(Math.min(4,B.rage+n));G3.shake(1);}catch(e){}buzz('heavy');}
 function raidRewards(win){const pl=NET.pl&&NET.pl.length?NET.pl:getPl();if(!win)return[];
  const me=pl.find(p=>p.id===NET.me)||{dmg:0},tot=pl.reduce((a,p)=>a+(p.dmg||0),0)||1,sh=me.dmg/tot,n=Math.max(1,pl.length);
@@ -4488,6 +4489,34 @@ function sendDead(){if(NET.role==='host'){if(NET.players.host)NET.players.host.d
 const fl9=float;float=function(t,cls,player){if(B&&B.raid&&cls==='heal'&&!player)return;return fl9.apply(this,arguments);};
 const withLocal=fn=>function(){if(B&&B.raid&&B.localHp){const es=B.es;B.es=Object.assign({},es,{hp:B.localHp});try{return fn.apply(this,arguments)}finally{B.es=es}}return fn.apply(this,arguments);};
 summon=withLocal(summon);if(typeof split==='function')split=withLocal(split);
+
+
+/* --- герои других игроков в арене + синхронизация босса --- */
+const S3=()=>{try{return G3.dbg();}catch(e){return null;}};
+const GH={scene:null,g:{},t:0,lt:0};
+const camP=window.__CAM;
+window.__CAM=function(c,s){if(camP)camP(c,s);try{if(B&&B.raid&&s&&s.hero&&s.hero.parent)raidFrame(s);}catch(e){}};
+function raidFrame(s){const R=G3.rr(),dt=Math.min(.1,Math.max(0,s.t-GH.lt));GH.lt=s.t;
+ if(GH.scene!==s){GH.scene=s;GH.g={};GH.t=0;}
+ if(dt<=0)return;
+ const sw=s.hs>=0?Math.min(1,s.hs/.5):-1,pos={x:s.hx,z:s.hz,a:s.hang,mv:s.hmv,sw};
+ GH.t-=dt;if(GH.t<=0){GH.t=.1;if(NET.role==='host'){if(NET.players.host)NET.players.host.pos=pos;}else if(NET.link)NET.link.send(Object.assign({t:'pos'},pos));}
+ const live={};
+ (NET.R.pl||[]).forEach(p=>{if(p.id===NET.me||!p.pos)return;live[p.id]=1;let g=GH.g[p.id];
+  if(!g){const gr=p.g||{};const node=MD.hero(gr.wk||'sword',gr.r||'stone',gr.ar||'none');node.s=[1.15,1.15,1.15];s.hero.parent.add(node);
+   const sd={x:0,z:0,r:1.15,color:[0,0,0],alpha:.7,mode:0,add:false};if(R)R.decals.push(sd);
+   g={node,sd,x:p.pos.x,z:p.pos.z,a:p.pos.a,ph:0,mv:0,dead:-1};GH.g[p.id]=g;}
+  const k=Math.min(1,dt*10),dx=p.pos.x-g.x,dz=p.pos.z-g.z;g.x+=dx*k;g.z+=dz*k;
+  let da=p.pos.a-g.a;da=Math.atan2(Math.sin(da),Math.cos(da));g.a+=da*k;
+  const spd=Math.hypot(dx,dz)/Math.max(dt,.001)*k;g.mv+=(Math.min(1,spd/5.3)-g.mv)*Math.min(1,dt*8);
+  g.ph+=dt*(5+g.mv*8)*(g.mv>.05?1:0);
+  if(p.dead){if(g.dead<0)g.dead=0;g.dead+=dt;}else g.dead=-1;
+  g.node.p=[g.x,0,g.z];g.node.r=[0,g.a,0];
+  g.node.anim({t:s.t,dt,mv:g.mv,ph:g.ph,wind:0,strike:0,swing:p.pos.sw,dead:g.dead,rage:0});
+  g.sd.x=g.x;g.sd.z=g.z;g.sd.alpha=p.dead?0:.7;});
+ for(const id in GH.g)if(!live[id]){const g=GH.g[id];try{g.node.parent&&g.node.parent.remove(g.node);}catch(e){}if(R){const i=R.decals.indexOf(g.sd);if(i>=0)R.decals.splice(i,1);}delete GH.g[id];}
+ /* босс: гости следуют позиции босса хоста */
+ const b=NET.R.b;if(NET.role==='guest'&&b&&!B.over){const k2=Math.min(1,dt*9);s.fx+=(b.x-s.fx)*k2;s.fz+=(b.z-s.fz)*k2;let d=b.a-s.fang;d=Math.atan2(Math.sin(d),Math.cos(d));s.fang+=d*k2;}}
 
 /* ================= 4. Голос (WebRTC через PeerJS calls) ================= */
 function initStream(){if(NET.stream)return NET.stream;try{const ac=new(window.AudioContext||window.webkitAudioContext)();NET.stream=ac.createMediaStreamDestination().stream;}catch(e){}return NET.stream;}
