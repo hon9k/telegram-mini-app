@@ -4287,12 +4287,12 @@ window.WXNET=Object.assign({
 .rdtag{font:700 10px var(--bd);text-transform:uppercase;padding:2px 6px;border-radius:8px;background:var(--ember);color:#1a0f05}
 .rdinp{width:100%;padding:12px;font:700 22px var(--hd);letter-spacing:6px;text-align:center;text-transform:uppercase;background:#0d1020;color:var(--bone);border:1px solid var(--line);border-radius:12px;outline:none;-webkit-user-select:text;user-select:text}
 .rdfoe{display:flex;gap:12px;align-items:center}.rdfoe .rdpic{width:92px;height:92px;flex:none;border-radius:16px;background:radial-gradient(circle at 50% 35%,#4a2b8f,#12152b);padding:4px}.rdpic svg{width:100%;height:100%}
-#raidhud{position:absolute;right:8px;top:128px;width:150px;z-index:20;pointer-events:none;display:flex;flex-direction:column;gap:4px}
+#battle #raidhud{position:absolute!important;right:8px;top:150px;width:150px;z-index:20;pointer-events:none;display:flex;flex-direction:column;gap:4px}
 #raidhud .rdp{background:rgba(8,10,22,.7);border-radius:8px;padding:3px 6px;font:700 11px var(--bd);color:var(--bone)}
 #raidhud .rdp.x{opacity:.45;text-decoration:line-through}
 #raidhud i{display:block;height:5px;margin-top:2px;background:#201a2e;border-radius:3px;overflow:hidden}
 #raidhud u{display:block;height:100%;background:var(--moss)}
-#rdmic{position:absolute;right:8px;top:92px;z-index:21;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:rgba(8,10,22,.75);color:var(--bone);font-size:17px;padding:0}
+#battle #rdmic{position:absolute!important;right:8px;top:112px;z-index:21;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:rgba(8,10,22,.75);color:var(--bone);font-size:17px;padding:0}
 body.raid #again{display:none}
 </style>
 <script>
@@ -4555,7 +4555,7 @@ function menu(){if(NET.role)return lobby();
 <div class="sub" style="margin-top:10px;font-size:12px">Транспорт: ${window.Peer?'P2P WebRTC (PeerJS 1.5.4)':'PeerJS не загрузился'}${WXNET.wsUrl?' + запасной WebSocket':', запасной WebSocket не настроен'}.</div>`);}
 function joinPrompt(code){modal(`<h2>Приглашение в рейд</h2><div class="rdbox"><div class="rdcode">${code}</div><div class="sub" style="text-align:center">Пожиратель Звёзд · комната друга</div></div><div class="acts2"><button class="btn" data-act="rdJoin" data-code="${code}">Войти</button><button class="btn alt" data-act="close">Позже</button></div>`);}
 function lobbyHTML(){const host=NET.role==='host',pl=getPl(),max=WXNET.max;
- return `<div class="rdlobby"><h2>Рейд: Пожиратель Звёзд</h2><div class="rdbox"><div class="sub" style="text-align:center">Код комнаты</div><div class="rdcode">${NET.code}</div><div class="sub" style="text-align:center;font-size:12px">Связь: ${trLabel()}${NET.lost?' · потеряна':''}</div></div>
+ return `<div class="rdlobby"><h2>Рейд: Пожиратель Звёзд</h2><div class="rdbox"><div class="sub" style="text-align:center">Код комнаты</div><div class="rdcode">${NET.code}</div><div class="sub" style="text-align:center;font-size:12px">Связь: ${trLabel()}${NET.lost?' · потеряна':''} · сборка 10.2</div></div>
 <div class="rdbox"><div class="sub">Игроки ${pl.length}/${max}</div>${pl.map(p=>`<div class="rdpl"><b>${esc(p.n)} <small>ур. ${p.lv}</small></b>${p.host?'<span class="rdtag">хост</span>':''}${p.id===NET.me?'<span class="rdtag" style="background:var(--moss)">ты</span>':''}</div>`).join('')}</div>
 <div class="acts2"><button class="btn gold" data-act="rdInvite">Пригласить в Telegram</button><button class="btn alt" data-act="rdCopy">Ссылка</button></div>
 <div class="acts2"><button class="btn alt" data-act="rdVoice">${!NET.voice?'Включить голос':micLive()?'Микрофон: вкл':'Микрофон: выкл'}</button></div>
