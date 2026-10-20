@@ -3677,6 +3677,7 @@ window.openChest=function(i,n){
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 <style>
+.wx-online{overflow-y:auto}.wx-online .wx-online-inner{padding-top:calc(env(safe-area-inset-top,0px) + 72px);padding-left:12px;padding-right:12px}
 .wx-online .wx-arena{height:310px;position:relative;overflow:hidden;border:2px solid #74546b;border-radius:16px;background:radial-gradient(ellipse at 50% 70%,#613a35,#141426 75%);perspective:750px}
 .wx-online .wx-arena .wx-model{position:absolute;top:5px;left:50%;width:175px;height:175px;transform:translateX(-50%);animation:wx-bossfloat 3s ease-in-out infinite}
 .wx-online .wx-arena .wx-model img,.wx-online .wx-arena .wx-model svg{width:100%;height:100%;object-fit:contain}
@@ -3695,6 +3696,8 @@ window.openChest=function(i,n){
 const WX_P2P_CONFIG={
   // Optional compatible WebSocket relay URL; requires your own server implementing this game's messages.
   websocketUrl:'',
+  // Свой PeerJS-сервер (рекомендуется, если облачный заблокирован): {host:'peer.example.com',port:443,path:'/',secure:true}
+  peerServer:null,
   // Optional TURN credentials from your own provider:
   iceServers:[{urls:'stun:stun.l.google.com:19302'}]
 };
@@ -3715,7 +3718,9 @@ function home(message=''){root.innerHTML=`<div class="wx-online-inner"><button c
 $('wx-exit').onclick=close;$('wx-create').onclick=create;$('wx-join').onclick=()=>join($('wx-code').value.trim().toUpperCase());}
 function closeNet(){clearInterval(hostTick);hostTick=null;for(const c of calls.values())try{c.close()}catch(e){}calls.clear();for(const c of conns.values())try{c.close()}catch(e){}conns.clear();try{hostConn?.close()}catch(e){}hostConn=null;try{peer?.destroy()}catch(e){}peer=null;try{ws?.close()}catch(e){}ws=null;if(voiceStream){voiceStream.getTracks().forEach(t=>t.stop());voiceStream=null;}host=false;joined=false;code='';selfId='';state=null;}
 function close(){closeNet();stage3d=null;root.classList.add('hidden');root.innerHTML='';}
-function peerCreate(id){return new Promise((resolve,reject)=>{if(!window.Peer)return reject(Error('PeerJS не загрузился. Проверь интернет.'));let p=new Peer(id,{debug:0,config:{iceServers:WX_P2P_CONFIG.iceServers}}),done=false;const timeout=setTimeout(()=>{if(!done){done=true;p.destroy();reject(Error('Тайм-аут подключения PeerJS'))}},12000);p.on('open',pid=>{if(done)return;done=true;clearTimeout(timeout);resolve(p)});p.on('error',e=>{if(!done){done=true;clearTimeout(timeout);reject(e)}else status('Ошибка сети: '+e.message)});});}
+function peerOnce(id,srv){return new Promise((resolve,reject)=>{if(!window.Peer)return reject(Error('PeerJS не загрузился. Проверь интернет.'));const o={debug:0,config:{iceServers:WX_P2P_CONFIG.iceServers}};if(srv)Object.assign(o,srv);let p=new Peer(id,o),done=false;const timeout=setTimeout(()=>{if(!done){done=true;try{p.destroy()}catch(e){}reject(Error('Тайм-аут подключения'))}},10000);p.on('open',()=>{if(done)return;done=true;clearTimeout(timeout);resolve(p)});p.on('error',e=>{if(!done){done=true;clearTimeout(timeout);try{p.destroy()}catch(x){}reject(e)}else status('Ошибка сети: '+e.message)});});}
+async function peerCreate(id){const list=[];if(WX_P2P_CONFIG.peerServer)list.push(WX_P2P_CONFIG.peerServer);list.push(null,null);let err;for(let i=0;i<list.length;i++){try{status('Подключение к серверу… ('+(i+1)+'/'+list.length+')');return await peerOnce(id,list[i]);}catch(e){err=e;await new Promise(r=>setTimeout(r,700));}}
+throw Error((err&&err.message||'нет связи')+'. Сервер PeerJS недоступен в этой сети — попробуй другой интернет/VPN или укажи свой peerServer в WX_P2P_CONFIG.');}
 function send(c,obj){try{if(c?.open)c.send(obj)}catch(e){}}
 function broadcast(obj){for(const c of conns.values())send(c,obj)}
 function sync(){if(!host||!state)return;state.updated=Date.now();state.seq=++seq;broadcast({type:'state',state});schedulePaint()}
