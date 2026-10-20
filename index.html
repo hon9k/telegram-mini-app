@@ -3675,6 +3675,7 @@ window.openChest=function(i,n){
 })();
 </script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 <style>
 .wx-online .wx-arena{height:310px;position:relative;overflow:hidden;border:2px solid #74546b;border-radius:16px;background:radial-gradient(ellipse at 50% 70%,#613a35,#141426 75%);perspective:750px}
 .wx-online .wx-arena .wx-model{position:absolute;top:5px;left:50%;width:175px;height:175px;transform:translateX(-50%);animation:wx-bossfloat 3s ease-in-out infinite}
@@ -3687,6 +3688,7 @@ window.openChest=function(i,n){
 .wx-online .wx-hitfx{animation:wx-hitfx .25s ease-out}@keyframes wx-hitfx{50%{filter:brightness(2);transform:translateX(-50%) scale(1.08)}}
 .wx-online .wx-actions{display:flex;gap:8px;flex-wrap:wrap}.wx-online .wx-actions button{flex:1;min-width:120px}
 .wx-online .wx-status{overflow-wrap:anywhere}
+.wx-online{background:linear-gradient(160deg,#070c1c,#12182c 65%,#070c18);font-family:Arial,sans-serif}.wx-online .wx-online-inner{max-width:760px}.wx-online h1{font:800 30px Arial,sans-serif;letter-spacing:2px}.wx-online .card,.wx-online .wx-person{background:#111c31;border:1px solid #293e60}.wx-online .btn{font-family:Arial,sans-serif;font-weight:800;letter-spacing:.3px}.wx-online .wx-arena3d{height:370px;background:#080e1e;border:1px solid #4163aa;border-radius:14px}.wx-online #wx-three-stage{width:100%;height:100%}.wx-online #wx-three-stage canvas{display:block;width:100%;height:100%}.wx-online .wx-arena-label{position:absolute;bottom:10px;left:12px;font:700 11px Arial,sans-serif;letter-spacing:1px;color:#a9c5ff;pointer-events:none}.wx-voice-control{display:flex;align-items:center;gap:14px;margin:16px 0;color:#b8cbea;font-size:13px}.wx-voice-control input{width:120px;accent-color:#5ca8ff}.wx-chat{margin-top:16px;border:1px solid #30456a;border-radius:12px;background:#0a1428;padding:12px}.wx-chat h3{margin:0 0 10px;font:800 14px Arial,sans-serif;letter-spacing:1px}.wx-chat-messages{height:145px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;font-size:13px}.wx-chat-messages div{display:flex;gap:9px;overflow-wrap:anywhere}.wx-chat-messages strong{color:#74c6ff}.wx-chat-messages span{color:#e7ecfa}.wx-chat form{display:flex;gap:8px;margin-top:12px}.wx-chat form input{margin:0;font:14px Arial,sans-serif;min-width:0;flex:1}.wx-chat form button{flex:0 0 auto}#wx-online-launch{position:fixed;bottom:82px;right:12px;z-index:70;padding:13px 19px;border:1px solid #72b6ff;border-radius:11px;color:#fff;background:linear-gradient(135deg,#1551a2,#09224c);box-shadow:0 4px 25px #008bff55;font:900 14px Arial,sans-serif;letter-spacing:1px;cursor:pointer}.wx-3d-error{padding:80px 20px;text-align:center;color:#fff}
 </style>
 <script>
 /* WORLDX P2P: PeerJS 1.5.4, host-authoritative star; no Firebase. */
@@ -3704,38 +3706,157 @@ const rand=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 const name=()=>String((typeof S!=='undefined'&&(S.name||S.nick))||document.getElementById('pname')?.textContent||'Странник').slice(0,24);
 const boss={n:'Повелитель вулкана',spr:'demon',pal:['#a42a18','#4a0f08','#f08a2a','#ffd23a'],boss:1,rl:30};
 let peer=null,host=false,code='',selfId='',conns=new Map(),hostConn=null,ws=null,voiceStream=null,calls=new Map(),state=null,lastHit=0,seq=0,hostTick=null,joined=false,paintTimer=0;
-const mkState=()=>({status:'lobby',boss:{hp:2400,maxHp:2400},players:{},updated:Date.now(),seq:0});
+const mkState=()=>({status:'lobby',boss:{hp:6000,maxHp:6000,atk:null,next:0},players:{},chat:[],updated:Date.now(),seq:0});
 const status=t=>{let e=$('wx-status');if(e)e.textContent=t;};
-function player(id,n){return {id,name:String(n||'Странник').slice(0,24),damage:0,x:0,z:0,hp:100};}
+function player(id,n){return {id,name:String(n||'Странник').slice(0,24),damage:0,x:Math.round(Math.random()*6-3),z:3,hp:100};}
 function roomFromUrl(){const p=new URLSearchParams(location.search);const t=p.get('room')||p.get('tgWebAppStartParam')||window.Telegram?.WebApp?.initDataUnsafe?.start_param||'';return /^wx_[a-z0-9]{6}$/i.test(t)?t.slice(3).toUpperCase():/^[a-z0-9]{6}$/i.test(t)?t.toUpperCase():'';}
 function shareLink(){const u=new URL(location.href);u.searchParams.set('room',code);return u.toString();}
 function home(message=''){root.innerHTML=`<div class="wx-online-inner"><button class="btn alt sm" id="wx-exit">← В игру</button><h1>⚔ Онлайн-рейд P2P</h1><div class="card"><b>Совместный босс · до 4 игроков</b><p class="sub">Хост управляет боем. Для приглашения отправь код комнаты или ссылку.</p><button class="btn wide" id="wx-create">Создать комнату</button><p>Код комнаты</p><input id="wx-code" maxlength="6" placeholder="ABC123" autocomplete="off" value="${esc(roomFromUrl())}"><button class="btn alt wide" id="wx-join">Присоединиться</button><p class="wx-status" id="wx-status">${esc(message||'Firebase не требуется. Нужен интернет для PeerJS.')}</p></div></div>`;
 $('wx-exit').onclick=close;$('wx-create').onclick=create;$('wx-join').onclick=()=>join($('wx-code').value.trim().toUpperCase());}
 function closeNet(){clearInterval(hostTick);hostTick=null;for(const c of calls.values())try{c.close()}catch(e){}calls.clear();for(const c of conns.values())try{c.close()}catch(e){}conns.clear();try{hostConn?.close()}catch(e){}hostConn=null;try{peer?.destroy()}catch(e){}peer=null;try{ws?.close()}catch(e){}ws=null;if(voiceStream){voiceStream.getTracks().forEach(t=>t.stop());voiceStream=null;}host=false;joined=false;code='';selfId='';state=null;}
-function close(){closeNet();root.classList.add('hidden');root.innerHTML='';}
+function close(){closeNet();stage3d=null;root.classList.add('hidden');root.innerHTML='';}
 function peerCreate(id){return new Promise((resolve,reject)=>{if(!window.Peer)return reject(Error('PeerJS не загрузился. Проверь интернет.'));let p=new Peer(id,{debug:0,config:{iceServers:WX_P2P_CONFIG.iceServers}}),done=false;const timeout=setTimeout(()=>{if(!done){done=true;p.destroy();reject(Error('Тайм-аут подключения PeerJS'))}},12000);p.on('open',pid=>{if(done)return;done=true;clearTimeout(timeout);resolve(p)});p.on('error',e=>{if(!done){done=true;clearTimeout(timeout);reject(e)}else status('Ошибка сети: '+e.message)});});}
 function send(c,obj){try{if(c?.open)c.send(obj)}catch(e){}}
 function broadcast(obj){for(const c of conns.values())send(c,obj)}
 function sync(){if(!host||!state)return;state.updated=Date.now();state.seq=++seq;broadcast({type:'state',state});schedulePaint()}
 function schedulePaint(){if(paintTimer)return;paintTimer=setTimeout(()=>{paintTimer=0;paint()},80)}
 function hostMessage(id,m){if(!m||typeof m!=='object')return;if(m.type==='join'){if(!state.players[id]&&Object.keys(state.players).length>=4){send(conns.get(id),{type:'error',message:'Комната заполнена'});conns.get(id)?.close();return}state.players[id]=player(id,m.name);sync();return}
-if(!state.players[id])return;if(m.type==='attack'&&state.status==='battle'){const p=state.players[id],now=Date.now();if(now-(p.lastAttack||0)<650)return;p.lastAttack=now;const damage=18;state.boss.hp=Math.max(0,state.boss.hp-damage);p.damage+=damage;if(!state.boss.hp)state.status='done';sync();}
-if(m.type==='move'){let p=state.players[id];p.x=Math.max(-5,Math.min(5,Number(m.x)||0));p.z=Math.max(-5,Math.min(5,Number(m.z)||0));sync();}}
+if(!state.players[id])return;if(m.type==='attack'&&state.status==='battle'){const p=state.players[id],now=Date.now();if(now-(p.lastAttack||0)<650)return;p.lastAttack=now;if((p.hp??100)<=0)return;const damage=22+Math.floor(Math.random()*14);state.boss.hp=Math.max(0,state.boss.hp-damage);p.damage+=damage;if(!state.boss.hp)state.status='done';sync();}
+if(m.type==='chat'){const msg=String(m.text||'').trim().slice(0,240);if(msg){state.chat=Array.isArray(state.chat)?state.chat:[];state.chat.push({name:state.players[id].name,text:msg,time:Date.now()});state.chat=state.chat.slice(-45);sync();}return;}
+if(m.type==='move'){let p=state.players[id];if((p.hp??100)<=0||state.status!=='battle')return;p.x=Math.max(-5,Math.min(5,Number(m.x)||0));p.z=Math.max(-5,Math.min(5,Number(m.z)||0));sync();}}
 function wireConn(c){if(!c||conns.has(c.peer))return;conns.set(c.peer,c);c.on('data',m=>hostMessage(c.peer,m));c.on('close',()=>{conns.delete(c.peer);if(state?.players[c.peer]){delete state.players[c.peer];sync()}});c.on('open',()=>send(c,{type:'hello',code}));}
 function wireVoice(){peer.on('call',call=>{if(!voiceStream){call.close();return}call.answer(voiceStream);attachCall(call)});}
-function attachCall(call){calls.set(call.peer,call);call.on('stream',stream=>{let a=document.getElementById('wx-audio-'+call.peer.replace(/[^a-z0-9-]/gi,''));if(!a){a=document.createElement('audio');a.autoplay=true;a.id='wx-audio-'+call.peer.replace(/[^a-z0-9-]/gi,'');document.body.appendChild(a)}a.srcObject=stream;a.play().catch(()=>{})});call.on('close',()=>calls.delete(call.peer));}
+function attachCall(call){calls.set(call.peer,call);call.on('stream',stream=>{let a=document.getElementById('wx-audio-'+call.peer.replace(/[^a-z0-9-]/gi,''));if(!a){a=document.createElement('audio');a.autoplay=true;a.id='wx-audio-'+call.peer.replace(/[^a-z0-9-]/gi,'');document.body.appendChild(a)}a.srcObject=stream;a.volume=Number(localStorage.getItem('wxVoiceVolume')||'0.7');a.play().catch(()=>{})});call.on('close',()=>calls.delete(call.peer));}
 async function toggleVoice(){if(voiceStream){voiceStream.getTracks().forEach(t=>t.stop());voiceStream=null;for(let c of calls.values())c.close();calls.clear();schedulePaint();return}try{voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});if(host){for(let id of conns.keys())attachCall(peer.call(id,voiceStream))}else if(hostConn?.open)attachCall(peer.call(hostConn.peer,voiceStream));schedulePaint()}catch(e){status('Микрофон: '+e.message)}}
-async function create(){closeNet();home('Создаём комнату…');code=rand();host=true;try{peer=await peerCreate('worldx-'+code.toLowerCase());selfId=peer.id;state=mkState();state.players[selfId]=player(selfId,name());peer.on('connection',wireConn);wireVoice();joined=true;hostTick=setInterval(()=>{if(host&&state?.status==='battle')sync()},1500);paint()}catch(e){closeNet();home('Не удалось создать комнату: '+e.message)}}
+async function create(){closeNet();home('Создаём комнату…');code=rand();host=true;try{peer=await peerCreate('worldx-'+code.toLowerCase());selfId=peer.id;state=mkState();state.players[selfId]=player(selfId,name());peer.on('connection',wireConn);wireVoice();joined=true;hostTick=setInterval(()=>{if(host&&state?.status==='battle'){bossTick();}},400);paint()}catch(e){closeNet();home('Не удалось создать комнату: '+e.message)}}
 async function join(c){if(!/^[A-Z0-9]{6}$/.test(c)){status('Введите 6 символов кода');return}closeNet();home('Подключаемся…');code=c;try{peer=await peerCreate('worldx-player-'+rand().toLowerCase());selfId=peer.id;wireVoice();hostConn=peer.connect('worldx-'+code.toLowerCase(),{reliable:true});hostConn.on('open',()=>{joined=true;send(hostConn,{type:'join',name:name()});status('Соединение установлено. Ждём состояние комнаты…')});hostConn.on('data',m=>{if(m?.type==='state'){state=m.state;schedulePaint()}else if(m?.type==='error')status(m.message)});hostConn.on('close',()=>{joined=false;home('Хост отключился. Комната закрыта.')});hostConn.on('error',e=>status('Ошибка соединения: '+e.message));setTimeout(()=>{if(!joined)status('Хост недоступен. Проверь код и соединение.')},11000)}catch(e){closeNet();home('Не удалось подключиться: '+e.message)}}
 function attack(){if(!state||state.status!=='battle')return;let now=Date.now();if(now-lastHit<650)return;lastHit=now;if(host)hostMessage(selfId,{type:'attack'});else send(hostConn,{type:'attack'});}
-function setBattle(){if(!host||!state)return;state.status='battle';state.boss.hp=state.boss.maxHp;for(let p of Object.values(state.players))p.damage=0;sync()}
-function move(dx){if(!state?.players[selfId])return;let p=state.players[selfId],x=Math.max(-5,Math.min(5,(p.x||0)+dx));if(host)hostMessage(selfId,{type:'move',x,z:0});else send(hostConn,{type:'move',x,z:0});}
+function bossTick(){const st=state,b=st.boss,now=Date.now(),al=Object.values(st.players).filter(p=>p.hp>0);let ch=false;
+ if(b.atk&&now>=b.atk.at){for(const p of al){if(Math.hypot((p.x-b.atk.x)*1.4,(p.z-b.atk.z)*1.2)<2.3){p.hp=Math.max(0,p.hp-(28+(b.hp/b.maxHp<.33?14:0)));}}b.atk=null;b.next=now+(b.hp/b.maxHp<.33?900:1500);ch=true;}
+ else if(!b.atk&&now>=(b.next||0)&&al.length){const t=al[Math.floor(Math.random()*al.length)];b.atk={x:t.x,z:t.z,at:now+1800};ch=true;}
+ if(!Object.values(st.players).some(p=>p.hp>0)){st.status='lose';b.atk=null;ch=true;}
+ if(ch||now-(st.updated||0)>1500)sync();}
+function setBattle(){if(!host||!state)return;const n=Object.keys(state.players).length;state.status='battle';state.boss.maxHp=3000+1500*n;state.boss.hp=state.boss.maxHp;state.boss.atk=null;state.boss.next=Date.now()+2500;let i=0;for(let p of Object.values(state.players)){p.damage=0;p.hp=100;p.x=[-3,-1,1,3][i%4];p.z=3;i++;}sync()}
+function move(dx,dz=0){if(!state?.players[selfId])return;let p=state.players[selfId],x=Math.max(-5,Math.min(5,(p.x||0)+dx*1.5)),z=Math.max(-5,Math.min(5,(p.z||0)+dz*1.5));p.x=x;p.z=z;if(host)hostMessage(selfId,{type:'move',x,z});else send(hostConn,{type:'move',x,z});}
+function sendChat(){const inp=$('wx-chat-input');const text=inp?.value.trim();if(!text)return;if(host)hostMessage(selfId,{type:'chat',text});else send(hostConn,{type:'chat',text});if(inp)inp.value='';}
+function setVolume(v){localStorage.setItem('wxVoiceVolume',String(v));document.querySelectorAll('audio[id^=wx-audio-]').forEach(a=>a.volume=Number(v));}
 function paint(){if(root.classList.contains('hidden')||!state)return;let players=Object.values(state.players||{}),hp=state.boss.hp,max=state.boss.maxHp,visual='';try{if(typeof MOB3D==='function')visual=MOB3D(boss)}catch(e){}if(!visual)visual='<div style="font-size:110px">👹</div>';
-root.innerHTML=`<div class="wx-online-inner"><button class="btn alt sm" id="wx-leave">← Выйти</button><h1>🔥 Онлайн-босс</h1><div class="card"><b>Комната ${esc(code)} · ${players.length}/4</b><div class="wx-status">${state.status==='lobby'?'Ожидание отряда':state.status==='battle'?'Бой идёт':'Босс побеждён!'}</div><div class="wx-hp"><i style="width:${100*hp/max}%"></i></div><p style="text-align:center">${hp} / ${max} HP</p><div class="wx-arena"><div class="wx-model">${visual}</div><div class="wx-party">${players.map((p,i)=>`<div class="wx-fighter"><div class="wx-body" style="transform:translateX(${(p.x||0)*4}px) rotateY(-22deg);animation-delay:${i*.4}s"><span class="head"></span><span class="torso"></span><span class="legs"></span></div>${esc(p.name)}</div>`).join('')}</div></div><div class="wx-actions" style="margin-top:12px">${state.status==='battle'?'<button class="btn gold" id="wx-hit">⚔ Атаковать</button><button class="btn alt" id="wx-left">◀</button><button class="btn alt" id="wx-right">▶</button>':host?'<button class="btn gold" id="wx-start">'+(state.status==='done'?'Новый бой':'Начать бой')+'</button>':'<p class="sub">Ждём хоста…</p>'}</div><div class="wx-actions" style="margin-top:10px"><button class="btn alt sm" id="wx-voice">🎙 ${voiceStream?'Выключить':'Включить'} голос</button><button class="btn alt sm" id="wx-copy">🔗 Пригласить</button></div><p class="wx-status" id="wx-status">${esc(voiceStream?'Микрофон включён':'Голосовой чат по желанию')}</p></div><h2 class="h3">Участники</h2><div class="wx-players">${players.map(p=>`<div class="wx-person"><b>${esc(p.name)}${p.id===selfId?' (ты)':''}</b><div class="sub">Урон: ${Math.round(p.damage||0)}</div></div>`).join('')}</div><p class="wx-status">Хост управляет боем. При выходе хоста комната закрывается. Награды в основной игре пока не начисляются.</p></div>`;
-$('wx-leave').onclick=close;let b=$('wx-hit');if(b)b.onclick=attack;b=$('wx-start');if(b)b.onclick=setBattle;b=$('wx-left');if(b)b.onclick=()=>move(-1);b=$('wx-right');if(b)b.onclick=()=>move(1);$('wx-voice').onclick=toggleVoice;$('wx-copy').onclick=async()=>{let link=shareLink();try{if(navigator.share)await navigator.share({title:'WORLDX',text:'Комната '+code,url:link});else if(navigator.clipboard)await navigator.clipboard.writeText(link);status('Ссылка на комнату: '+link)}catch(e){status(link)}};
+root.innerHTML=`<div class="wx-online-inner"><button class="btn alt sm" id="wx-leave">← Выйти</button><h1>ОНЛАЙН-РЕЙД</h1><div class="card"><b>Комната ${esc(code)} · ${players.length}/4</b><div class="wx-status">${state.status==='lobby'?'Ожидание отряда':state.status==='battle'?'Бой идёт':(state.status==='lose'?'Отряд повержен…':'Босс побеждён!')}</div><div class="wx-hp"><i style="width:${100*hp/max}%"></i></div><p style="text-align:center">${hp} / ${max} HP</p><div class="wx-arena wx-arena3d"><div id="wx-three-stage"></div><div class="wx-arena-label">ПОВЕЛИТЕЛЬ ВУЛКАНА · ХРАМ ЛАВЫ</div></div><div class="wx-actions" style="margin-top:12px">${state.status==='battle'?'<button class="btn gold" id="wx-hit">⚔ Атаковать</button><button class="btn alt" id="wx-left">◀</button><button class="btn alt" id="wx-right">▶</button><button class="btn alt" id="wx-up">▲</button><button class="btn alt" id="wx-down">▼</button>':host?'<button class="btn gold" id="wx-start">'+(state.status!=='lobby'?'Новый бой':'Начать бой')+'</button>':'<p class="sub">Ждём хоста…</p>'}</div><div class="wx-actions" style="margin-top:10px"><button class="btn alt sm" id="wx-voice">🎙 ${voiceStream?'Выключить':'Включить'} голос</button><button class="btn alt sm" id="wx-copy">Пригласить</button></div><div class="wx-voice-control"><label for="wx-volume">Громкость собеседников</label><input type="range" id="wx-volume" min="0" max="1" step="0.05" value="${esc(localStorage.getItem('wxVoiceVolume')||'0.7')}"></div><section class="wx-chat"><h3>ЧАТ КОМНАТЫ</h3><div class="wx-chat-messages" id="wx-chat-messages">${(state.chat||[]).map(m=>`<div><strong>${esc(m.name)}</strong><span>${esc(m.text)}</span></div>`).join('')||'<p>Сообщений пока нет</p>'}</div><form id="wx-chat-form"><input id="wx-chat-input" maxlength="240" placeholder="Написать сообщение..." autocomplete="off"><button class="btn" type="submit">Отправить</button></form></section><p class="wx-status" id="wx-status">${esc(voiceStream?'Микрофон включён':'Голосовой чат по желанию')}</p></div><h2 class="h3">Участники</h2><div class="wx-players">${players.map(p=>`<div class="wx-person"><b>${esc(p.name)}${p.id===selfId?' (ты)':''}</b><div class="sub">Урон: ${Math.round(p.damage||0)}</div></div>`).join('')}</div><p class="wx-status">Хост управляет боем. При выходе хоста комната закрывается. Награды в основной игре пока не начисляются.</p></div>`;
+$('wx-leave').onclick=close;let b=$('wx-hit');if(b)b.onclick=attack;b=$('wx-start');if(b)b.onclick=setBattle;b=$('wx-left');if(b)b.onclick=()=>move(-1);b=$('wx-right');if(b)b.onclick=()=>move(1);b=$('wx-up');if(b)b.onclick=()=>move(0,-1);b=$('wx-down');if(b)b.onclick=()=>move(0,1);$('wx-voice').onclick=toggleVoice;$('wx-volume').oninput=e=>setVolume(e.target.value);$('wx-chat-form').onsubmit=e=>{e.preventDefault();sendChat()};const chatBox=$('wx-chat-messages');if(chatBox)chatBox.scrollTop=chatBox.scrollHeight;render3D();$('wx-copy').onclick=async()=>{let link=shareLink();try{if(navigator.share)await navigator.share({title:'WORLDX',text:'Комната '+code,url:link});else if(navigator.clipboard)await navigator.clipboard.writeText(link);status('Ссылка на комнату: '+link)}catch(e){status(link)}};
 }
+let stage3d=null;
+const gx=x=>x*1.4,gz=z=>z*1.2+1;
+function render3D(){
+ const mount=$('wx-three-stage');if(!mount)return;
+ if(!window.THREE){mount.innerHTML='<p class="wx-3d-error">Для 3D нужен интернет</p>';return;}
+ if(stage3d){mount.appendChild(stage3d.renderer.domElement);stage3d.resize();return;}
+ const T=THREE,scene=new T.Scene();scene.background=new T.Color(0x1a0805);scene.fog=new T.FogExp2(0x2a0d07,.016);
+ const camera=new T.PerspectiveCamera(46,1,.1,200),renderer=new T.WebGLRenderer({antialias:true});
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));mount.appendChild(renderer.domElement);
+ const resize=()=>{const w=mount.clientWidth||340,h=mount.clientHeight||370;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();};resize();
+ camera.position.set(0,10.5,19);camera.lookAt(0,2.6,-1);
+ scene.add(new T.HemisphereLight(0xffa070,0x1a0a14,1.4));
+ const key=new T.DirectionalLight(0xffc9a0,1.6);key.position.set(-6,14,10);scene.add(key);
+ const fire=new T.PointLight(0xff5a1a,90,40);fire.position.set(0,4,-3);scene.add(fire);
+ const M=(c,e=0,i=.5,m=.3,r=.6)=>new T.MeshStandardMaterial({color:c,emissive:e,emissiveIntensity:i,metalness:m,roughness:r});
+ const rock=M(0x3a2a26,0,0,.1,.9),obs=M(0x14101a,0x1a0a20,.3,.6,.35),armor=M(0x4a2020,0x300808,.5,.6,.4),glow=M(0xff7a1c,0xff4a00,1.4),eye=M(0xffe27a,0xffb000,2.5);
+ const add=(g,m,x,y,z,p=scene)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);p.add(o);return o};
+ // лава: бесконечное озеро с анимированной текстурой
+ const cv=document.createElement('canvas');cv.width=cv.height=256;const cx=cv.getContext('2d');cx.fillStyle='#b82a08';cx.fillRect(0,0,256,256);
+ for(let i=0;i<260;i++){cx.fillStyle=`hsl(${15+Math.random()*30},100%,${35+Math.random()*30}%)`;cx.beginPath();cx.ellipse(Math.random()*256,Math.random()*256,4+Math.random()*16,2+Math.random()*7,Math.random()*3,0,7);cx.fill();}
+ const lt=new T.CanvasTexture(cv);lt.wrapS=lt.wrapT=T.RepeatWrapping;lt.repeat.set(10,10);
+ const lava=add(new T.CircleGeometry(70,40),new T.MeshBasicMaterial({map:lt}),0,-1.6,0);lava.rotation.x=-Math.PI/2;
+ // платформа-храм: ступени, руническое кольцо, колонны, врата
+ add(new T.CylinderGeometry(10.5,11.5,1.8,40),rock,0,-.8,0);
+ add(new T.CylinderGeometry(9.6,10.2,.5,40),obs,0,.2,0);
+ add(new T.CylinderGeometry(8.4,8.6,.25,40),M(0x22181e,0,0,.5,.3),0,.5,0);
+ for(const [r,w] of [[7.6,.16],[5.2,.1],[2.6,.1]]){const ring=add(new T.TorusGeometry(r,w,6,64),glow,0,.66,0);ring.rotation.x=Math.PI/2;}
+ for(let i=0;i<8;i++){const a=i*Math.PI/4,l=add(new T.BoxGeometry(.14,.05,7.6),glow,0,.66,0);l.rotation.y=a;}
+ for(let i=0;i<10;i++){const a=Math.PI*(.12+i*.1)+Math.PI*.5*0,x=Math.cos(a*2-Math.PI*.5+i*.62)*8.6,z=Math.sin(a*2-Math.PI*.5+i*.62)*8.6;
+  const h=2.4+(i%3)*1.2;add(new T.CylinderGeometry(.5,.65,h,7),rock,x,h/2,z);add(new T.CylinderGeometry(.62,.5,.3,7),obs,x,h+.1,z);
+  if(i%2)add(new T.ConeGeometry(.32,.9,5),glow,x,h+.7,z);}
+ for(let i=0;i<14;i++){const a=i*2.1,r=12+(i%4)*3;const s=1.2+(i%3)*.8;add(new T.DodecahedronGeometry(s,0),rock,Math.cos(a)*r,-.6+(i%3)*.5,Math.sin(a)*r-6);}
+ // вулкан и врата на заднем плане
+ add(new T.ConeGeometry(26,24,18,1,true),M(0x1c0f10,0x240a04,.3,.1,.95),0,9,-46);
+ add(new T.CylinderGeometry(5,3.2,2,14),glow,0,20.5,-46);
+ const gate=new T.Group();gate.position.set(0,0,-9.6);scene.add(gate);
+ for(const s of [-1,1]){add(new T.BoxGeometry(1.4,9,1.4),obs,s*4.2,4.5,0,gate);add(new T.ConeGeometry(.9,1.8,5),glow,s*4.2,9.9,0,gate);}
+ add(new T.BoxGeometry(10.4,1.3,1.4),obs,0,9,0,gate);
+ // боевая зона-телеграф атаки и кольцо удара
+ const zone=add(new T.CircleGeometry(1,40),new T.MeshBasicMaterial({color:0xff2a10,transparent:true,opacity:.45,depthWrite:false}),0,.75,0);zone.rotation.x=-Math.PI/2;zone.visible=false;
+ const shock=add(new T.RingGeometry(.8,1,40),new T.MeshBasicMaterial({color:0xffb040,transparent:true,opacity:0,side:T.DoubleSide}),0,.8,0);shock.rotation.x=-Math.PI/2;
+ // искры
+ const N=220,pp=new Float32Array(N*3);for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*30;pp[i*3+1]=Math.random()*14;pp[i*3+2]=(Math.random()-.5)*30-4;}
+ const pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(pp,3));
+ scene.add(new T.Points(pg,new T.PointsMaterial({color:0xffa040,size:.16,transparent:true,opacity:.9})));
+ // босс: Повелитель вулкана
+ const boss=new T.Group();boss.position.set(0,.7,-4.2);boss.scale.setScalar(1.15);scene.add(boss);
+ for(const s of [-1,1]){add(new T.CylinderGeometry(.62,.85,2.4,7),armor,s*1,1.3,0,boss);add(new T.BoxGeometry(1.1,.5,1.7),obs,s*1,.25,.3,boss);}
+ add(new T.CylinderGeometry(1.9,1.2,3.4,8),armor,0,3.9,0,boss);
+ for(let i=0;i<4;i++)add(new T.BoxGeometry(3.1-i*.3,.28,.9),i%2?obs:armor,0,5.1-i*.7,.95,boss).rotation.x=.14;
+ const core=add(new T.IcosahedronGeometry(.62,1),eye,0,4.15,1.15,boss);
+ const head=new T.Group();head.position.set(0,6.2,.2);boss.add(head);
+ add(new T.DodecahedronGeometry(1.15,1),obs,0,0,0,head);
+ const jaw=add(new T.BoxGeometry(1.1,.4,.9),armor,0,-.85,.45,head);
+ for(const s of [-1,1]){add(new T.BoxGeometry(.4,.16,.12),eye,s*.45,.12,1.05,head).rotation.z=-s*.3;
+  const h=add(new T.ConeGeometry(.42,3,6),glow,s*.95,1.5,-.1,head);h.rotation.z=-s*.5;
+  const h2=add(new T.ConeGeometry(.22,1.4,5),armor,s*1.1,-.1,.2,head);h2.rotation.z=-s*1.1;}
+ for(let i=0;i<5;i++)add(new T.ConeGeometry(.2,1+(i%2)*.7,5),glow,(i-2)*.38,1.1,-.5,head);
+ const arms=[];
+ for(const s of [-1,1]){
+  add(new T.SphereGeometry(.95,10,8),armor,s*2.5,5.45,0,boss);
+  for(let j=0;j<3;j++)add(new T.ConeGeometry(.2,1,5),glow,s*(2.5+j*.2),6.2+j*.2,-.2+j*.3,boss).rotation.z=-s*(.3+j*.25);
+  const a=new T.Group();a.position.set(s*2.6,5.3,0);boss.add(a);arms.push(a);
+  add(new T.CylinderGeometry(.5,.62,2.2,7),armor,0,-1.1,0,a);add(new T.CylinderGeometry(.62,.46,2,7),obs,0,-3,.2,a);
+  const f=add(new T.DodecahedronGeometry(.95,0),glow,0,-4.3,.3,a);
+  const wg=add(new T.ConeGeometry(2.2,6,3),M(0x2a0c0c,0x601000,.5),s*3.6,6,-1.5,boss);wg.rotation.z=s*.9;wg.scale.z=.12;}
+ const pl=new Map();
+ const mkP=(i)=>{const g=new T.Group(),c=[0x2679b9,0x268c78,0xd0a030,0x9a3aae][i%4];
+  add(new T.BoxGeometry(.9,1.35,.65),M(c,0,0,.4,.5),0,1.5,0,g);add(new T.BoxGeometry(.67,.7,.67),M(0xe5bfa2,0,0,0,.8),0,2.5,0,g);
+  add(new T.BoxGeometry(.7,.2,.7),M(c,0,0,.4,.5),0,2.95,0,g);
+  for(const s of [-1,1]){add(new T.BoxGeometry(.32,1.1,.36),obs,s*.25,.55,0,g);add(new T.BoxGeometry(.28,1,.3),M(c,0,0,.4,.5),s*.62,1.5,0,g);}
+  g.userData.sw=add(new T.BoxGeometry(.13,1.7,.16),eye,.95,1.6,.3,g);
+  const bar=add(new T.BoxGeometry(1.4,.14,.05),M(0x58d04a,0x58d04a,1),0,3.4,0,g);g.userData.bar=bar;scene.add(g);return g;};
+ let hitT=0,prevHp=-1,prevAtk=null,shake=0,shT=0,zonePos=[0,0],lastAtk=null;
+ const clock=new T.Clock();let last=Date.now();
+ const loop=()=>{
+  if(root.classList.contains('hidden')||stage3d?.renderer!==renderer){renderer.dispose();return;}
+  requestAnimationFrame(loop);
+  const t=clock.getElapsedTime(),st=state;if(!st){renderer.render(scene,camera);return;}
+  const ratio=st.boss.hp/st.boss.maxHp,enr=ratio<.33,atk=st.boss.atk;
+  lt.offset.set(t*.012,t*.02);fire.intensity=80+Math.sin(t*9)*12+Math.sin(t*23)*6+(enr?30:0);
+  const pa=pg.attributes.position;for(let i=0;i<N;i++){let y=pa.array[i*3+1]+.02+(i%5)*.004;if(y>14)y=0;pa.array[i*3+1]=y;pa.array[i*3]+=Math.sin(t+i)*.004;}pa.needsUpdate=true;
+  // босс
+  boss.position.y=.7+Math.sin(t*1.6)*.12;core.scale.setScalar(1+Math.sin(t*(enr?9:4))*.18);
+  glow.emissiveIntensity=enr?2.2+Math.sin(t*8)*.5:1.4;
+  const tgt=atk?(zonePos=[gx(atk.x),gz(atk.z)]):null;
+  boss.rotation.y+=((tgt?Math.atan2(tgt[0]-0,tgt[1]+4.2)*.35:Math.sin(t*.5)*.12)-boss.rotation.y)*.08;
+  arms.forEach((a,i)=>{const want=atk?-2.7-(Date.now()>atk.at-350?-1.5:0):Math.sin(t*1.5+i*2)*.15;a.rotation.x+=(want-a.rotation.x)*.2;});
+  head.rotation.x=atk?.25:Math.sin(t*1.2)*.05;jaw.position.y=-.85-(atk?.25:0);
+  if(prevHp>=0&&st.boss.hp<prevHp)hitT=.18;prevHp=st.boss.hp;
+  if(hitT>0){hitT-=.016;boss.scale.setScalar(1.15+hitT*.25);}else boss.scale.setScalar(1.15);
+  eye.emissiveIntensity=hitT>0?6:2.5;
+  // телеграф и удар
+  if(atk){zone.visible=true;zone.position.set(zonePos[0],.75,zonePos[1]);const k=Math.max(0,Math.min(1,1-(atk.at-Date.now())/1800));zone.scale.setScalar(2.2*(.5+.5*k));zone.material.opacity=.25+.35*Math.abs(Math.sin(t*(8+k*10)));lastAtk=[zonePos[0],zonePos[1]];}
+  else{zone.visible=false;if(prevAtk){shT=1;shake=.5;shock.position.set(lastAtk[0],.8,lastAtk[1]);}}
+  prevAtk=atk;
+  if(shT>0){shT-=.03;shock.scale.setScalar(1+(1-shT)*4);shock.material.opacity=shT;}else shock.material.opacity=0;
+  shake*=.9;camera.position.set((Math.random()-.5)*shake,10.5+(Math.random()-.5)*shake,19);camera.lookAt(0,2.6,-1);
+  // игроки
+  const ids=Object.keys(st.players);
+  for(const id of ids){const p=st.players[id];let g=pl.get(id);if(!g){g=mkP(pl.size);pl.set(id,g);}
+   const tx=gx(p.x||0),tz=gz(p.z||0);g.position.x+=(tx-g.position.x)*.2;g.position.z+=(tz-g.position.z)*.2;
+   g.position.y=0.6+Math.abs(Math.sin(t*10+ids.indexOf(id)))*(Math.hypot(tx-g.position.x,tz-g.position.z)>.1?.15:0);
+   g.rotation.y=Math.atan2(-4.2-g.position.z,-g.position.x)*0+Math.PI*0;
+   const hp=Math.max(0,(p.hp??100)/100);g.userData.bar.scale.x=Math.max(.001,hp);g.userData.bar.position.x=-.7*(1-hp);g.userData.bar.lookAt(camera.position);
+   g.rotation.z=hp<=0?1.45:0;g.userData.sw.rotation.z=-.3+(Date.now()-(p.lastAttack||0)<250?-1.2:0);}
+  for(const [id,g] of pl)if(!st.players[id]){scene.remove(g);pl.delete(id);}
+  renderer.render(scene,camera);};
+ stage3d={renderer,resize};requestAnimationFrame(loop);
+}
+addEventListener('keydown',e=>{if(root.classList.contains('hidden')||/INPUT|TEXTAREA/.test(e.target.tagName))return;const k=e.key.toLowerCase();if(k==='a'||k==='arrowleft')move(-1);else if(k==='d'||k==='arrowright')move(1);else if(k==='w'||k==='arrowup')move(0,-1);else if(k==='s'||k==='arrowdown')move(0,1);else if(k===' '){e.preventDefault();attack();}});
 window.WXOnline={open(){root.classList.remove('hidden');home();},close};
-function addEntry(){if(typeof ACT==='undefined'||typeof vMore!=='function')return;ACT.wxonline=()=>window.WXOnline.open();const old=vMore;vMore=function(){return `<div class="card"><b style="font:26px var(--hd)">⚔ Онлайн-рейд P2P</b><p class="sub">PeerJS · комнаты · совместный босс · голосовой чат</p><button class="btn gold wide" data-act="wxonline">Играть онлайн</button></div>`+old();};}
+function addEntry(){if(document.getElementById('wx-online-launch'))return;const launch=document.createElement('button');launch.id='wx-online-launch';launch.textContent='ОНЛАЙН';launch.onclick=()=>window.WXOnline.open();document.body.appendChild(launch);if(typeof ACT==='undefined'||typeof vMore!=='function')return;ACT.wxonline=()=>window.WXOnline.open();const old=vMore;vMore=function(){return `<div class="card"><b style="font:26px var(--hd)">⚔ Онлайн-рейд P2P</b><p class="sub">PeerJS · комнаты · совместный босс · голосовой чат</p><button class="btn gold wide" data-act="wxonline">Играть онлайн</button></div>`+old();};}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addEntry);else addEntry();
 })();
 </script></body></html>
