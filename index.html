@@ -4578,4 +4578,93 @@ window.WXRAID={NET,hostRoom,joinRoom};
 })();
 </script>
 
+
+<style id="wx-expansion-css">
+#wx-world{position:fixed;inset:0;z-index:55;background:#100f19;overflow:hidden;touch-action:none;color:#fff;font-family:var(--bd)}
+#wx-world canvas{width:100%;height:100%;display:block;touch-action:none}
+.wx-hud{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;display:flex;gap:8px;align-items:center;pointer-events:none}
+.wx-hud>*{pointer-events:auto}.wx-hud .wx-panel{flex:1;background:#171522dc;border:1px solid #a58a60;padding:8px 12px;border-radius:10px;min-width:0}
+.wx-hud strong{display:block;font-size:17px}.wx-hud small{color:#ddc7a2}
+.wx-worldbtn{background:#30283aee;border:1px solid #a58a60;color:#fff;padding:11px 14px;border-radius:12px;font:700 14px var(--bd);touch-action:manipulation}
+.wx-controls{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);left:16px;right:16px;display:flex;justify-content:space-between;align-items:end;pointer-events:none}
+.wx-stick{height:128px;width:128px;border:2px solid #c4aa80aa;border-radius:50%;background:#18141b88;position:relative;pointer-events:auto;touch-action:none}
+.wx-knob{position:absolute;left:50%;top:50%;height:55px;width:55px;border-radius:50%;background:#d6b57ba8;transform:translate(-50%,-50%)}
+.wx-acts{display:flex;flex-direction:column;gap:10px;pointer-events:auto}.wx-acts button{min-width:100px}
+.wx-message{position:absolute;bottom:190px;left:15%;right:15%;text-align:center;background:#18141bcc;border-radius:9px;padding:9px;pointer-events:none}
+.wx-world-menu{position:absolute;top:84px;right:12px;display:flex;flex-direction:column;gap:8px}
+.wx-setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.wx-setup label{font-size:13px;color:var(--dim)}.wx-setup select{display:block;width:100%;background:#17121a;color:white;padding:9px;border:1px solid var(--line);margin-top:5px}
+</style>
+<script id="wx-expansion">
+/* WORLDX expansion: independent exploration mode, built on the game's own WebGL renderer. */
+(function(){
+'use strict';
+const $w=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const looks={skin:['#e6ad7d','#a97450','#7f9eb4','#b89bd4'],armor:['#687c9e','#b44e37','#439987','#bb9a45'],cape:['#9a2a36','#2b669a','#7544a3','#2f855a'],hair:['#292026','#b88a40','#d4d2c5','#823b29'],aura:['Нет','Огонь','Лёд','Магия']};
+let config;try{config=JSON.parse(localStorage.getItem('wx_custom')||'{}')}catch(e){config={}};
+const cfg=k=>cl(+config[k]||0,0,looks[k].length-1);
+let w=null,fromWorld=null,mode='explore',challenge=null,wxRenderer=null;
+function node(mesh,p,scale,col){const b=new M3.Builder();b.add(mesh,{p:[0,0,0],s:scale||[1,1,1]},col||'#c4a272',.05);const n=new M3.Node('prop');n.mesh=wxRenderer.mesh(b);n.p=p;return n;}
+function prop(root,x,z,type){let n;if(type==='chest'){n=node(M3.box(1.15,.8,.75),[x,.5,z],[1,1,1],'#a96e35');n.add(node(M3.box(1.2,.15,.82),[0,.45,0],[1,1,1],'#e4b954'));}
+else if(type==='tree'){n=new M3.Node('tree');n.p=[x,0,z];n.add(node(M3.cyl(.23,.18,2.6,7),[0,1.3,0],null,'#654631'));n.add(node(M3.cone(1.4,3,8),[0,3.15,0],null,'#356b4e'));}
+else if(type==='trap'){n=node(M3.box(2,.12,2),[x,.08,z],null,'#b94134');}
+else if(type==='secret'){n=node(M3.box(1.5,2.3,.6),[x,1.2,z],null,'#6948a4');}
+else if(type==='platform'){n=node(M3.box(2.5,.3,2.5),[x,.3,z],null,'#669fb1');}
+else {n=node(M3.box(1.4,1.6,1.2),[x,.8,z],null,'#997c66');}
+root.add(n);return n;}
+function showMessage(t){if(!w)return;w.msg.textContent=t;w.msg.style.display='block';clearTimeout(w.msgTimer);w.msgTimer=setTimeout(()=>{if(w)w.msg.style.display='none'},2600);}
+function makeWorld(area,dungeon){
+ if(w)closeWorld(false);if(B&&!B.over)return toast('Сначала заверши бой');
+ const world=WORLDS.find(v=>v.id===area)||WORLDS[0];
+ const el=document.createElement('div');el.id='wx-world';el.innerHTML='<canvas></canvas><div class="wx-hud"><button class="wx-worldbtn" id="wx-exit">Назад</button><div class="wx-panel"><strong id="wx-zone"></strong><small id="wx-progress"></small></div></div><div class="wx-world-menu"><button class="wx-worldbtn" id="wx-map">Карта</button></div><div class="wx-message" id="wx-msg" style="display:none"></div><div class="wx-controls"><div class="wx-stick" id="wx-stick"><div class="wx-knob" id="wx-knob"></div></div><div class="wx-acts"><button class="wx-worldbtn" id="wx-interact">Действие</button><button class="wx-worldbtn" id="wx-dash">Рывок</button></div></div>';
+ document.body.appendChild(el);let renderer,root,avatar,pet;
+ try{renderer=new M3.Renderer(el.querySelector('canvas'));wxRenderer=renderer;MD.init(renderer);root=new M3.Node('overworld');const ground=node(M3.box(90,.3,90),[0,-.25,0],null,dungeon?'#343244':'#4a654d');root.add(ground);
+ for(let i=0;i<42;i++){let x=rnd(-39,39),z=rnd(-39,39);if(Math.hypot(x,z)<6)continue;prop(root,x,z,dungeon?(i%6===0?'trap':i%8===0?'platform':'rock'):(i%5===0?'rock':'tree'));}
+ const wn=S.equip.weapon?ITEMS[S.equip.weapon]:{k:'sword',r:'stone'};avatar=MD.hero(wn.m||wn.k,wn.r,S.equip.armor?ITEMS[S.equip.armor].r:'none');avatar.s=[1.05,1.05,1.05];root.add(avatar);
+ const petDef=PETS.find(p=>p.n===S.pet.name);if(petDef){pet=MD.creature(petDef.spr,petDef.pal,{},false);pet.s=[.42,.42,.42];root.add(pet);}
+ }catch(err){el.remove();return toast('3D-мир не запустился: '+err.message)}
+ const objects=[];for(let i=0;i<(dungeon?9:16);i++){
+  const angle=i*2.399,dist=8+Math.sqrt(i)*6,x=Math.cos(angle)*dist,z=Math.sin(angle)*dist;
+  const type=dungeon?(i%4===0?'trap':i%3===0?'chest':'enemy'):(i%5===0?'chest':i===11?'secret':'enemy');
+  const obj={type,x,z,used:false};if(type==='enemy'){obj.enemy=world.enemies[i%world.enemies.length];obj.node=MD.creature(obj.enemy.spr,obj.enemy.pal,obj.enemy.opt||{},!!obj.enemy.boss);obj.node.p=[x,0,z];obj.node.s=[.9,.9,.9];root.add(obj.node);}else obj.node=prop(root,x,z,type);objects.push(obj);
+ }
+ w={el,renderer,root,avatar,pet,world,area,dungeon,objects,x:0,z:0,vx:0,vz:0,keys:{},wave:1,cleared:0,total:objects.filter(o=>o.type==='enemy').length,msg:$w('wx-msg'),last:performance.now(),raf:0,joy:0,active:true,limit:38,invuln:0,trapCd:0};
+ $w('wx-zone').textContent=dungeon?'Подземелье · '+world.n:world.n;
+ $w('wx-exit').onclick=()=>closeWorld(true);$w('wx-interact').onclick=interact;$w('wx-dash').onclick=()=>{if(!w)return;const d=Math.hypot(w.vx,w.vz)||1;w.x=cl(w.x+w.vx/d*3,-38,38);w.z=cl(w.z+w.vz/d*3,-38,38);showMessage('Рывок!')};
+ $w('wx-map').onclick=()=>showMessage('Золотые сундуки · красные ловушки · враги вокруг');
+ const stick=$w('wx-stick'),knob=$w('wx-knob');function joy(ev){const r=stick.getBoundingClientRect(),dx=ev.clientX-r.left-r.width/2,dy=ev.clientY-r.top-r.height/2,m=Math.max(1,Math.hypot(dx,dy)),a=Math.min(1,m/45);w.vx=dx/m*a;w.vz=dy/m*a;knob.style.left=(50+w.vx*34)+'%';knob.style.top=(50+w.vz*34)+'%';}
+ stick.onpointerdown=e=>{stick.setPointerCapture(e.pointerId);w.joy=e.pointerId;joy(e)};stick.onpointermove=e=>{if(w&&w.joy===e.pointerId)joy(e)};function release(){if(!w)return;w.vx=w.vz=0;w.joy=0;knob.style.left='50%';knob.style.top='50%'}stick.onpointerup=release;stick.onpointercancel=release;
+ w.keydown=e=>{if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','e',' '].includes(e.key.toLowerCase()))e.preventDefault();w&& (w.keys[e.key.toLowerCase()]=true);if(e.key.toLowerCase()==='e')interact();};w.keyup=e=>{if(w)w.keys[e.key.toLowerCase()]=false};window.addEventListener('keydown',w.keydown);window.addEventListener('keyup',w.keyup);
+ showMessage('Исследуй мир: джойстик — движение, «Действие» — взаимодействие');loop();
+ }
+ function loop(){if(!w||!w.active)return;w.raf=requestAnimationFrame(loop);if(document.hidden)return;const t=performance.now(),dt=Math.min(.05,(t-w.last)/1000);w.last=t;const k=w.keys;let x=w.vx+(k.d||k.arrowright?1:0)-(k.a||k.arrowleft?1:0),z=w.vz+(k.s||k.arrowdown?1:0)-(k.w||k.arrowup?1:0),d=Math.hypot(x,z);if(d>1){x/=d;z/=d;}w.x=cl(w.x+x*6*dt,-w.limit,w.limit);w.z=cl(w.z+z*6*dt,-w.limit,w.limit);
+ w.avatar.p=[w.x,.12+Math.sin(t*.008)*.05,w.z];if(d>.1)w.avatar.r[1]=Math.atan2(x,z);if(w.pet){w.pet.p[0]+=(w.x-1.2-w.pet.p[0])*Math.min(1,dt*3);w.pet.p[2]+=(w.z+1.1-w.pet.p[2])*Math.min(1,dt*3);w.pet.p[1]=.12+Math.sin(t*.004)*.12;}
+ w.renderer.cam.eye=[w.x+11,18,w.z+20];w.renderer.cam.target=[w.x,.6,w.z];w.renderer.cam.fov=.67;w.renderer.cam.near=.2;w.renderer.cam.far=160;w.renderer.t=t/1000;
+ for(const o of w.objects){if(o.used)continue;if(o.type==='enemy'){o.node.r[1]+=dt*.3;o.node.p[1]=Math.sin(t*.002+o.x)*.08;}if(o.type==='trap'&&Math.hypot(o.x-w.x,o.z-w.z)<1.2&&t>w.trapCd){w.trapCd=t+2500;showMessage('Опасная зона! Отойди от ловушки.');}if(o.type==='platform')o.node.p[1]=.3+Math.sin(t*.001+o.x)*.55;}
+ w.renderer.frame(w.root);$w('wx-progress').textContent='Побеждено '+w.cleared+'/'+w.total+' · сундуки и тайники';}
+ function interact(){if(!w)return;let best=null,dist=3.1;for(const o of w.objects){if(o.used)continue;const d=Math.hypot(o.x-w.x,o.z-w.z);if(d<dist){dist=d;best=o;}}if(!best)return showMessage('Подойди к врагу, сундуку или тайнику');
+ if(best.type==='enemy'){const e=best.enemy;fromWorld={area:w.area,dungeon:w.dungeon,enemyX:best.x,enemyZ:best.z};closeWorld(false);startBattle(Object.assign({k:w.area+'|'+e.n},e),w.area,'world');return;}
+ if(best.type==='trap')return showMessage('Ловушка: держись подальше от красной плиты');
+ best.used=true;w.root.remove(best.node);if(best.type==='chest'){const c=Math.round(rnd(35,140));S.coins+=c;gainXp(10);save();showMessage('Сундук открыт: +'+c+' монет, +10 опыта');hud();}
+ else if(best.type==='secret'){S.shards+=3;save();showMessage('Секретная комната! +3 осколка');}
+ else showMessage('Объект исследован');}
+ function closeWorld(back){if(!w)return;w.active=false;cancelAnimationFrame(w.raf);window.removeEventListener('keydown',w.keydown);window.removeEventListener('keyup',w.keyup);w.el.remove();w=null;if(back){fromWorld=null;render();}}
+ const oldMap=vMap;vMap=function(){return '<div class="card"><b style="font:400 25px var(--hd)">Открытый 3D-мир</b><p class="sub">Исследуй локации, находи сундуки, секреты и врагов. Управление джойстиком или WASD.</p><button class="btn gold wide" data-act="wxopen" data-area="'+WORLDS[0].id+'">Исследовать мир</button><button class="btn alt wide" style="margin-top:8px" data-act="wxchallenge">Режим испытаний</button></div>'+oldMap();};
+ const oldWorld=vWorld;vWorld=function(){return '<button class="btn gold wide" style="margin-bottom:12px" data-act="wxopen" data-area="'+UI.world+'">Войти в открытый 3D-мир</button><button class="btn alt wide" style="margin-bottom:12px" data-act="wxdungeon" data-area="'+UI.world+'">Случайное подземелье</button>'+oldWorld();};
+ const oldHero=vHero;vHero=function(){return oldHero()+'<div class="h3">Внешность героя</div><div class="card"><div class="sub">Выбери цвета кожи, брони, плаща, волос и визуальный эффект.</div><div class="wx-setup">'+Object.keys(looks).map(k=>'<label>'+({skin:'Облик',armor:'Цвет брони',cape:'Плащ',hair:'Волосы',aura:'Эффект'}[k])+'<select data-wxlook="'+k+'">'+looks[k].map((v,i)=>'<option value="'+i+'" '+(cfg(k)===i?'selected':'')+'>'+(k==='aura'?v:'Стиль '+(i+1))+'</option>').join('')+'</select></label>').join('')+'</div><button class="btn gold wide" data-act="wxpreview">Применить внешний вид</button></div>';};
+ document.addEventListener('change',e=>{const k=e.target.dataset.wxlook;if(!k)return;config[k]=+e.target.value;localStorage.setItem('wx_custom',JSON.stringify(config));});
+ ACT.wxpreview=()=>{toast('Внешность сохранена');render()};ACT.wxopen=d=>makeWorld(d.area,false);ACT.wxdungeon=d=>makeWorld(d.area,true);
+ ACT.wxchallenge=()=>modal('<h2>Режим испытаний</h2><p class="sub">Выбери особое правило для следующего боя.</p><button class="btn wide" data-wxchallenge="noheal">Без лечения</button><button class="btn wide" data-wxchallenge="timed" style="margin-top:8px">На время · 60 секунд</button><button class="btn wide" data-wxchallenge="multi" style="margin-top:8px">Несколько врагов</button><button class="btn alt wide" data-act="close" style="margin-top:8px">Отмена</button>');
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-wxchallenge]');if(!b)return;challenge=b.dataset.wxchallenge;closeModal();const world=WORLDS.find(x=>x.id===UI.world)||WORLDS[0];const foe=world.enemies[world.enemies.length-1];startBattle(Object.assign({k:world.id+'|'+foe.n},foe),world.id,'world');});
+ const originalBattle=startBattle;startBattle=function(e,wid,m){originalBattle(e,wid,m);if(!B)return;B.wxPhase=0;B.wxChallenge=challenge;B.wxDeadline=challenge==='timed'?performance.now()+60000:0;B.wxArena=0;B.wxArenaTime=performance.now()+5000;challenge=null;if(B.wxChallenge==='multi'){B.nextSummon=performance.now()+1000;B.php=Math.min(B.hmax,B.php);}if(B.wxChallenge){const b=$w('blog');if(b)b.textContent='Испытание: '+({noheal:'без лечения',timed:'победа за 60 секунд',multi:'несколько противников'}[B.wxChallenge]);}};
+ const originalPotion=usePotion;usePotion=function(){if(B&&B.wxChallenge==='noheal')return toast('Испытание: лечение запрещено');return originalPotion();};
+ const originalRetreat=retreat;retreat=function(){if(B&&B.wxChallenge==='noheal')return toast('Испытание: лечение запрещено');return originalRetreat();};
+ const originalTick=tick;tick=function(){if(B&&!B.over){const now=performance.now();if(B.wxChallenge==='timed'&&now>B.wxDeadline){say('Время испытания истекло');leave();toast('Испытание не пройдено');return;}if(B.e.boss&&!B.wxPhase&&B.ehp<=B.es.hp*.5&&B.ehp>0){B.wxPhase=1;B.rage=Math.max(B.rage,2);B.nextAtk=now+400;B.ult.at=now+3500;B.esh+=Math.round(B.es.hp*.08);B.eshMax=Math.max(B.eshMax,B.esh);G3.rageUp(3);evt('ВТОРАЯ ФАЗА','rg');say('Босс преобразился! Его атаки стали быстрее.');const spr=$w('spr');if(spr)spr.style.filter='hue-rotate(70deg) saturate(1.8) drop-shadow(0 0 18px #f43)';}if(B.wxPhase&&B.nextAtk>now+1200)B.nextAtk=now+1200;
+ if(now>B.wxArenaTime){B.wxArenaTime=now+5500;B.wxArena++;if(G3.on){const g=G3.dbg();if(g){g.shake=.3;if(B.wxArena%2===0&&g.rocks&&g.rocks.kids&&g.rocks.kids.length){const n=g.rocks.kids[B.wxArena%g.rocks.kids.length];n.s=[.15,.15,.15];}if(B.wxArena%3===0&&G3.foeNear()){const dmg=Math.max(1,Math.round(B.hmax*.025));B.php=Math.max(1,B.php-dmg);say('Опасная зона арены: −'+dmg+' HP');}}}}
+ }return originalTick();};
+ /* Visual appearance also affects the existing 3D hero model. */
+ const oldMDHero=MD.hero;MD.hero=function(...args){const h=oldMDHero(...args);try{const b=new M3.Builder(),c=looks.cape[cfg('cape')],a=looks.armor[cfg('armor')],hair=looks.hair[cfg('hair')];b.add(M3.box(.9,1.65,.12),{p:[0,1.45,-.38]},c,.04);b.add(M3.box(.9,.35,.72),{p:[0,2.75,0]},hair,.02);b.add(M3.box(.85,.4,.65),{p:[0,1.72,.05]},a,.06);const n=new M3.Node('custom-outfit');n.mesh=(G3.rr()||wxRenderer).mesh(b);h.add(n);if(cfg('aura'))h.shell={color:cfg('aura')===1?[1,.3,.1]:cfg('aura')===2?[.2,.7,1]:[.8,.3,1],alpha:.3,pow:2,add:true};}catch(e){}return h;};
+ window.WXExpansion={open:makeWorld,close:closeWorld};
+})();
+</script>
+
 </body></html>
