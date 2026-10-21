@@ -3164,7 +3164,7 @@ function adminAct(k){
   else if(k==='reset'){if(Date.now()-adRst>4000){adRst=Date.now();toast('Нажми ещё раз для сброса');return;}S=DEF();toast('Прогресс сброшен');}
   save();render();adminPanel(String(n));
 }
-(function(){const el=document.getElementById('xptxt');if(!el)return;el.style.padding='8px 16px';el.addEventListener('click',()=>{const t=Date.now();if(t-adT>2500)adTaps=0;adT=t;if(++adTaps>=8){adTaps=0;adminGate();}});})();
+(function(){document.addEventListener('click',ev=>{if(typeof UI==='undefined'||UI.tab!=='hero')return;if(ev.target.closest&&ev.target.closest('button,input,select,a'))return;const c=ev.target.closest&&ev.target.closest('#view .card');if(!c)return;const r=c.getBoundingClientRect();if(r.top>420)return;const x=(ev.clientX-r.left)/r.width,y=(ev.clientY-r.top)/r.height;if(x<.62||y>.4)return;const t=Date.now();if(t-adT>2500)adTaps=0;adT=t;if(++adTaps>=7){adTaps=0;adminGate();}},true);})();
 
 
 /* ============ полный экран ============ */
