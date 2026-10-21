@@ -2806,7 +2806,7 @@ function itemModal(n){
 function vShop(){
   const seg=`<div class="seg"><button class="${UI.shop==='coins'?'on':''}" data-act="shop" data-v="coins">Лавка</button><button class="${UI.shop==='chests'?'on':''}" data-act="shop" data-v="chests">Сундуки</button></div>`;
   if(UI.shop==='coins')return `<h1 class="ttl">Лавка</h1>${seg}`+SHOP.map(n=>{const it=ITEMS[n];return `<div class="card"><div class="row"><div class="ico">${itemIcon(n)}</div><div class="grow"><b>${n}</b><small>${it.t==='weapon'?'+'+it.b+' к удару':it.t==='armor'?'−'+armorPct(it.b)+'% урона':it.d.split('.')[0]}</small></div><button class="btn sm gold" data-act="buy" data-n="${n}" ${S.coins<it.price?'disabled':''}>${fmt(it.price)}</button></div></div>`;}).join('');
-  return `<h1 class="ttl">Сундуки</h1>${seg}<div class="sub" style="margin:-4px 2px 12px">Сундуки покупаются за Звёзды Telegram. Из них выпадает самое сильное снаряжение.</div>`+CHESTS.map((c,i)=>{const t=c.d.reduce((a,b)=>a+b[1],0),own=S.cases[i]||0;if(c.bp)return '';return `<div class="card"><div class="chrow"><div class="chico">${chestSvg(c.c)}</div><div style="flex:1;min-width:0"><b style="font:400 22px var(--hd)">${c.n}</b><div class="stars">${c.bp?'Только в боевом пропуске':c.stars+' ★'}${own?` · в запасе: ${own}`:''}</div><div class="odds">${c.d.map(d=>`${d[0]} ${(d[1]/t*100).toFixed(d[1]/t<.05?1:0).replace('.0','')}%`).join(' · ')}</div></div></div><div class="acts2" style="margin-top:10px">${own?`<button class="btn" data-act="chest" data-i="${i}">Открыть ×${own}</button>`:''}${c.bp?'':`<button class="btn ${own?'alt':''}" data-act="buychest" data-i="${i}">Купить · ${c.stars} ★</button>`}</div></div>`;}).join('');
+  return `<h1 class="ttl">Сундуки</h1>${seg}<div class="sub" style="margin:-4px 2px 12px">Сундуки покупаются за Звёзды Telegram. Из них выпадает самое сильное снаряжение.</div>`+CHESTS.map((c,i)=>{const t=c.d.reduce((a,b)=>a+b[1],0),own=S.cases[i]||0;if(c.bp&&!own)return '';return `<div class="card"><div class="chrow"><div class="chico">${chestSvg(c.c)}</div><div style="flex:1;min-width:0"><b style="font:400 22px var(--hd)">${c.n}</b><div class="stars">${c.bp?'Только в боевом пропуске':c.stars+' ★'}${own?` · в запасе: ${own}`:''}</div><div class="odds">${c.d.map(d=>`${d[0]} ${(d[1]/t*100).toFixed(d[1]/t<.05?1:0).replace('.0','')}%`).join(' · ')}</div></div></div><div class="acts2" style="margin-top:10px">${own?`<button class="btn" data-act="chest" data-i="${i}">Открыть ×${own}</button>`:''}${c.bp?'':`<button class="btn ${own?'alt':''}" data-act="buychest" data-i="${i}">Купить · ${c.stars} ★</button>`}</div></div>`;}).join('');
 }
 function vMore(){
   daily();
@@ -3164,7 +3164,7 @@ function adminAct(k){
   else if(k==='reset'){if(Date.now()-adRst>4000){adRst=Date.now();toast('Нажми ещё раз для сброса');return;}S=DEF();toast('Прогресс сброшен');}
   save();render();adminPanel(String(n));
 }
-(function(){const el=document.getElementById('pname');el.addEventListener('click',()=>{const t=Date.now();if(t-adT>3000)adTaps=0;adT=t;if(++adTaps>=7){adTaps=0;adminGate();}});})();
+(function(){const el=document.getElementById('xptxt');if(!el)return;el.style.padding='8px 16px';el.addEventListener('click',()=>{const t=Date.now();if(t-adT>2500)adTaps=0;adT=t;if(++adTaps>=8){adTaps=0;adminGate();}});})();
 
 
 /* ============ полный экран ============ */
@@ -3380,7 +3380,7 @@ const fn0=finish;finish=function(win){const e=B&&B.e,s=SS(),R=RR();
  return fn0(win);};
 /* --- Книга монстров --- */
 const ENT=()=>{const a=[];WORLDS.forEach(w=>w.enemies.forEach(e=>a.push({e,wn:w.n,wid:w.id,k:w.id+'|'+e.n,rl:e.rl,coins:e.coins})));RARE.forEach(r=>a.push({e:r,wn:'Редкие',wid:'plains',k:r.k,rl:'?',coins:[0,0]}));return a;};
-const spr=e=>MOB3D(e);
+window.WX_ENT=ENT;const spr=e=>MOB3D(e);
 function drops(x){const e=x.e;if(e.rare)return '<div class="rw"><span>Монеты ×3 от обычных</span><b>100%</b></div><div class="rw"><span>Осколки</span><b>+3</b></div>';
  const L=e.boss?BOSS_DROPS:MOB_DROPS,t=L.reduce((a,b)=>a+b[1],0),p=e.boss?.45:.06;
  return L.map(q=>`<div class="rw"><span>${q[0]}</span><b>${(p*q[1]/t*100).toFixed(1)}%</b></div>`).join('')+(e.boss?'<div class="rw"><span>Эпическое / Божественное</span><b>1.2% / 0.12%</b></div>':'');}
@@ -4936,9 +4936,9 @@ function locs(){const a=WORLDS.map(w=>({id:w.id,k:'w',w}));a.push({id:'open',k:'
  a.forEach((l,i)=>{const k=sl[i];l.lat=Math.asin(yy(k));l.lon=k*2.399963+.6;});return a;}
 function anchors(){return locs().map(l=>({x:Math.cos(l.lat)*Math.sin(l.lon),y:Math.sin(l.lat),z:Math.cos(l.lat)*Math.cos(l.lon),id:l.id,c:BIO[l.id]||'#8a7fd0'}));}
 function init(){if(GL)return GL;if(!G3.supported())return null;const prev=rr(),cv=document.createElement('canvas');
- try{const R=new M3.Renderer(cv);MD.init(R);const sc=new M3.Node('gl'),g=MD.rnd(9),AN=anchors();
+ try{const R=new M3.Renderer(cv);R.pixBudget=650000;R.minScale=.6;MD.init(R);const sc=new M3.Node('gl'),g=MD.rnd(9),AN=anchors();
   R.bg={A:[.01,.01,.05],B:[.05,.06,.18],C:[.2,.16,.42]};
-  const stars=MD.mesh(b=>{for(let k=0;k<160;k++){const a=g()*2*PI,e=(g()-.5)*PI*.9,r=215+g()*40;b.add(M3.sphere(.25+g()*.4,4,3),{p:[Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r]},'#ffffff',1);}});
+  const stars=MD.mesh(b=>{for(let k=0;k<90;k++){const a=g()*2*PI,e=(g()-.5)*PI*.9,r=215+g()*40;b.add(M3.sphere(.25+g()*.4,4,3),{p:[Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r]},'#ffffff',1);}});
   const col=(x,y,z)=>{const L=Math.hypot(x,y,z),dx=x/L,dy=y/L,dz=z/L,n=Math.sin(dx*4.1+Math.sin(dz*3.3)*1.6)*Math.cos(dy*4.4+Math.sin(dx*2.7)*1.4)+Math.sin(dz*6+dx*2)*.25;
    let c=n>.12?M3.mixC('#3e7d45','#6aa851',Math.min(1,(n-.12)*1.5)):M3.mixC('#15356f','#2a63b5',cl((n+1)/1.1,0,1));if(Math.abs(dy)>.88)c='#eef6ff';
    for(const a of AN){const ang=Math.acos(Math.min(1,dx*a.x+dy*a.y+dz*a.z));if(ang<.55)c=M3.mixC(c,a.c,1-cl((ang-.25)/.3,0,1));}return c;};
@@ -4946,7 +4946,7 @@ function init(){if(GL)return GL;if(!G3.supported())return null;const prev=rr(),c
   const clouds=MD.mesh(b=>{for(let k=0;k<9;k++){const a=g()*2*PI,e=(g()-.5)*2.2,r=RP+3.6;for(let q=0;q<3;q++)b.add(M3.sphere(.7+g()*.6,6,5),{p:[Math.cos(a+q*.12)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a+q*.12)*Math.cos(e)*r]},'#ffffff',.3,{flat:true});}});
 
   const dec=MD.mesh(b=>{const q=MD.rnd(21);
-   for(let i=0;i<300;i++){const u=q()*2-1,an=q()*2*PI,sr=Math.sqrt(1-u*u),dx=sr*Math.cos(an),dy=u,dz=sr*Math.sin(an);
+   for(let i=0;i<190;i++){const u=q()*2-1,an=q()*2*PI,sr=Math.sqrt(1-u*u),dx=sr*Math.cos(an),dy=u,dz=sr*Math.sin(an);
     let best=9,id='';AN.forEach(o=>{const ag=Math.acos(Math.min(1,dx*o.x+dy*o.y+dz*o.z));if(ag<best){best=ag;id=o.id;}});if(best<.45)continue;
     const n=Math.sin(dx*4.1+Math.sin(dz*3.3)*1.6)*Math.cos(dy*4.4+Math.sin(dx*2.7)*1.4)+Math.sin(dz*6+dx*2)*.25,land=n>.12,sz=.7+q()*.8,rot=[Math.acos(dy),Math.atan2(dx,dz),0];
     const put=(geo,off,c,em,sc)=>b.add(geo,{p:[dx*(RP+off),dy*(RP+off),dz*(RP+off)],r:rot,s:sc||[1,1,1]},c,em||0,{flat:true});
@@ -5000,7 +5000,7 @@ function mount(){if(!init())return;const g=GL;let host=document.getElementById('
   b.innerHTML=`<b>${w?w.n:l.n}</b><i>${lk?ICON.lock+' ур. '+w.req:w?dn(w)+'/'+w.enemies.length:l.k==='dun'?'этаж '+(S.wxDepth||1):'исследовать'}</i>`;
   b.onclick=()=>{if(g.sel===i){if(l.k==='w')enter(l.id);}else go(i);};box.appendChild(b);return b;});
  if(g.sel>=g.L.length)g.sel=-1;panel();paint();if(!raf)raf=requestAnimationFrame(frame);}
-function frame(now){raf=0;const g=GL;if(!g||!g.cv.isConnected)return;raf=requestAnimationFrame(frame);const dt=Math.min(.2,(now-lt)/1000);lt=now;
+function frame(now){raf=0;const g=GL;if(!g||!g.cv.isConnected)return;raf=requestAnimationFrame(frame);if(!g.cs&&now-lt<(UI.tab==='map'?22:34))return;const dt=Math.min(.2,(now-lt)/1000);lt=now;
  vis=!document.hidden&&!nb();const slow=!g.cs&&UI.tab!=='map';g.acc=(g.acc||0)+dt;if(slow&&(tick&1))return;const adt=g.acc;g.acc=0;
  if(!vis)return;try{step(g,adt,now/1000);}catch(e){}}
 function step(g,dt,t){const R=g.R,cv=g.cv;ensure();g.f+=(g.fT-g.f)*Math.min(1,dt*2.2);const e=ez(cl(g.f,0,1));
@@ -5280,12 +5280,14 @@ setTimeout(hide,30000);
   try{SECRETS.forEach(x=>x.w&&(x.w.enemies||[]).forEach(add));}catch(e){}
   try{RARE.forEach(add);}catch(e){}
   try{DUN.forEach(d=>add({n:d[0],spr:d[1],pal:d[2],boss:!!d[3]}));}catch(e){}
-  const ids=[];try{WORLDS.forEach(w=>ids.push(w.id));}catch(e){}
+  try{WX_ENT().forEach(x=>add(x.e));}catch(e){}
+   const ids=[];try{WORLDS.forEach(w=>ids.push(w.id));}catch(e){}
   const tot=list.length+ids.length;
   set(0,'Подготавливаем миры…');
   for(let i=0;i<ids.length;i++){set(i/tot,'Строим локации '+(i+1)+'/'+ids.length);await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));try{W3_PRELOAD(ids[i]);}catch(e){}}
   await MOB3D_PRELOAD(list,(n,t)=>set((ids.length+n)/tot,'Рисуем монстров '+n+'/'+t));
-  document.documentElement.classList.add('wx3d');
+  set(.98,'Книга монстров…');try{WX_ENT().forEach(x=>MOB3D(x.e));await new Promise(r=>setTimeout(r,150));}catch(e){}
+   document.documentElement.classList.add('wx3d');
   try{render();}catch(e){}
  }catch(e){console.warn('preload',e);}
  hide();
@@ -5293,7 +5295,26 @@ setTimeout(hide,30000);
 })();
 </script>
 <script>
-/* Кейсы: настоящая планета раскручивается и взрывается, затем показ награды */
+/* Новая анимация кейса */
+(()=>{const st=document.createElement('style');st.textContent=`.nc{position:fixed;inset:0;z-index:99990;background:radial-gradient(circle at 50% 55%,#1a1030 0,#05030a 75%);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .35s}.nc.out{opacity:0}
+.nc .ray{position:absolute;left:50%;top:55%;width:220vmax;height:220vmax;margin:-110vmax;background:repeating-conic-gradient(from 0deg,var(--c) 0 6deg,transparent 6deg 24deg);opacity:0;-webkit-mask:radial-gradient(circle,#000 0,transparent 55%);mask:radial-gradient(circle,#000 0,transparent 55%);animation:ncr 6s linear infinite}
+.nc.go .ray{opacity:.5;transition:opacity .5s}@keyframes ncr{to{transform:rotate(360deg)}}
+.nc .ch{width:150px;filter:drop-shadow(0 0 22px var(--c));animation:ncs 1.4s ease-in forwards}.nc .ch svg{width:100%;display:block}
+@keyframes ncs{0%{transform:scale(.6)}15%{transform:scale(1) rotate(-5deg)}30%{transform:rotate(6deg)}45%{transform:rotate(-8deg) scale(1.08)}60%{transform:rotate(9deg) scale(1.14)}78%{transform:rotate(-10deg) scale(1.22);filter:drop-shadow(0 0 50px var(--c)) brightness(1.6)}100%{transform:scale(1.5);filter:brightness(5)}}
+.nc.go .ch{animation:ncb .4s ease-out forwards}@keyframes ncb{to{transform:scale(3);opacity:0}}
+.nc .fl{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}.nc.go .fl{animation:ncf .7s ease-out}@keyframes ncf{0%{opacity:1}100%{opacity:0}}
+.nc .it{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);text-align:center;color:#fff;font:700 22px var(--hd,system-ui)}
+.nc .it .ic{width:130px;height:130px;margin:0 auto 10px;filter:drop-shadow(0 0 24px var(--c))}.nc .it .ic svg{width:100%;height:100%}.nc .it small{display:block;color:var(--c);font-size:14px;letter-spacing:2px;text-transform:uppercase}
+.nc.go .it{animation:nci .8s .25s cubic-bezier(.2,1.4,.4,1) forwards}@keyframes nci{to{transform:translate(-50%,-50%) scale(1)}}
+.nc .hn{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:100%;text-align:center;color:#ffffff88;font-size:12px}`;document.head.appendChild(st);
+window.WX_chestFX_new=function(name,rar,done){const c=(window.COL&&COL[rar])||'#fff';let ic='',sv='';try{ic=itemIcon(name);}catch(e){}try{sv=chestSvg(c);}catch(e){}
+const o=document.createElement('div');o.className='nc';o.style.setProperty('--c',c);o.innerHTML=`<div class="ray"></div><div class="ch">${sv}</div><div class="it"><div class="ic">${ic}</div><small>${(window.RN&&RN[rar])||''}</small>${name}</div><div class="fl"></div><div class="hn">нажми, чтобы пропустить</div>`;document.body.appendChild(o);
+let fin=0;const end=()=>{if(fin)return;fin=1;o.classList.add('out');setTimeout(()=>{o.remove();try{done();}catch(e){console.error(e);}},350);};
+const T=rar==='divine'?1900:rar==='epic'?1600:1400;const go=setTimeout(()=>{if(fin)return;o.classList.add('go');try{buzz('heavy');}catch(e){}},T);setTimeout(end,T+2300);
+o.addEventListener('pointerdown',e=>{e.preventDefault();clearTimeout(go);end();});};})();
+</script>
+<script>
+/* Кейсы: показ награды после анимации */
 (()=>{const prev=window.openChest;if(typeof prev!=='function'||!window.WX_chestFX)return;
 window.openChest=function(i,n){const r=prev.apply(this,arguments);try{
  const m=document.getElementById('modal'),tr=document.getElementById('x5track'),b=tr&&tr.children[29]&&tr.children[29].querySelector('b'),nm=b&&b.textContent,it=nm&&ITEMS[nm];
