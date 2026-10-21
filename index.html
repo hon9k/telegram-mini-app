@@ -409,8 +409,14 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   #battle.g3 .bt-title b{font-size:17px}
 }
 </style>
-</head>
-<body>
+<style id="wxloadcss">#wxload{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 70% at 50% 0,#2c3270 0,#0b0e1a 60%),#070914;color:#eef1ff;font-family:'Trebuchet MS',system-ui,sans-serif;transition:opacity .5s;padding:24px;text-align:center}
+#wxload.out{opacity:0;pointer-events:none}
+#wxload h1{margin:0;font:800 44px/1 'Trebuchet MS',system-ui,sans-serif;letter-spacing:6px;background:linear-gradient(135deg,#ff8a3d,#ffd27a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 18px #ff8a3d66)}
+#wxload .bar{width:min(78vw,320px);height:12px;border-radius:8px;background:#ffffff1c;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff22}
+#wxload .bar i{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#ff8a3d,#ffc65a);transition:width .15s;box-shadow:0 0 14px #ff8a3d}
+#wxload p{margin:0;font-size:14px;color:#aab3dd;min-height:20px}#wxload small{font-size:12px;color:#7f89b8;max-width:300px}
+.wx3d:not([data-graphics=low]) .wc .bn>svg{display:none}.w3{transition:opacity .2s!important}</style></head>
+<body><div id="wxload"><h1>WORLDX</h1><div class="bar"><i id="wxlb"></i></div><p id="wxlt">Загрузка…</p><small id="wxls"></small></div>
 <div id="app">
   <header class="hud">
     <div class="emblem"><span id="lvl">1</span></div>
@@ -3747,7 +3753,7 @@ document.addEventListener('change',function(ev){if(ev.target.id!=='profilePhotoI
   const k=keyOf(e);
   if(cache[k])return `<img class="m3" alt="" draggable="false" src="${cache[k]}">`;
   if(ids[k]==null){ids[k]=reg.length;reg.push({k,e});}
-  return `<span class="m3w" data-m="${ids[k]}">${flat(e)}</span>`;
+  return `<span class="m3w" data-m="${ids[k]}"></span>`;
  };
  function ensure(){
   if(TR)return true;
@@ -3799,12 +3805,29 @@ document.addEventListener('change',function(ev){if(ev.target.id!=='profilePhotoI
     if(!cache[r.k]){if(!ensure())throw new Error('nogl');cache[r.k]=render(r.e);}
     const im=new Image();im.className='m3';im.alt='';im.draggable=false;im.src=cache[r.k];
     if(el.parentNode)el.parentNode.replaceChild(im,el);
-   }catch(err){fails++;console.warn('MOB3D',err);}
+   }catch(err){fails++;try{el.innerHTML=flat(reg[+el.dataset.m].e);}catch(_){}console.warn('MOB3D',err);}
    setTimeout(step,0);
   })();
  }
  new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;if(document.querySelector('.m3w:not([data-p])'))pump();},16);}).observe(document.body,{childList:true,subtree:true});
  window.MOB3D_DEBUG={cache,reg};
+ const hash=t=>{let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return (h>>>0).toString(36);};
+ const idb=()=>new Promise(res=>{try{const q=indexedDB.open('wx_m3d',1);q.onupgradeneeded=()=>q.result.createObjectStore('m');q.onsuccess=()=>res(q.result);q.onerror=()=>res(null);}catch(e){res(null);}});
+ const idbAll=db=>new Promise(res=>{try{const o={},q=db.transaction('m').objectStore('m').openCursor();q.onsuccess=()=>{const c=q.result;if(c){o[c.key]=c.value;c.continue();}else res(o);};q.onerror=()=>res({});}catch(e){res({});}});
+ const idbPut=(db,k,v)=>{try{db.transaction('m','readwrite').objectStore('m').put(v,k);}catch(e){}};
+ const idbClr=db=>new Promise(r=>{try{const q=db.transaction('m','readwrite').objectStore('m').clear();q.onsuccess=q.onerror=()=>r();}catch(e){r();}});
+ const keep=[];
+ window.MOB3D_PRELOAD=async function(list,cb){
+  let db=null,saved={},ver='';try{ver=hash(String(MD.creature)+String(MD.platform)+Object.keys(MD.MK).join());}catch(e){}
+  try{db=await idb();if(db){saved=await idbAll(db);if(saved.__ver!==ver){await idbClr(db);saved={};idbPut(db,'__ver',ver);}}}catch(e){db=null;}
+  let n=0;const tot=list.length;
+  for(const e of list){const k=keyOf(e);
+   if(!cache[k]){if(saved[k])cache[k]=saved[k];else if(KEYS.has(e.spr)&&fails<=2&&ensure()){try{cache[k]=render(e);if(db)idbPut(db,k,cache[k]);}catch(err){fails++;}}}
+   n++;if(cb)cb(n,tot);if(!saved[k]&&n%2===0)await new Promise(r=>requestAnimationFrame(r));}
+  const ds=[];for(const k in cache){const im=new Image();im.src=cache[k];keep.push(im);if(im.decode)ds.push(im.decode().catch(()=>{}));}
+  await Promise.all(ds);
+ };
+
 })();
 
 /* ===== v8: современный 3D-стиль меню, живые миры, тематические арены боссов ===== */
@@ -3868,6 +3891,7 @@ function loop(){raf=0;if((typeof B!=='undefined'&&B)||document.hidden)return;con
  if(WXGraphics.get()==='low'){list.forEach(cv=>cv.classList.remove('on'));return;}
  if(now-lt>(WXGraphics.get()==='ultra'?32:48)){lt=now;list.forEach(cv=>{try{cv.classList.toggle('on',draw(cv,now)!==false);}catch(_){cv.classList.remove('on');}});}
  raf=requestAnimationFrame(loop);}
+window.W3_PRELOAD=function(id){const o=build(id);if(!o||!R2)return false;try{cv0.style.width='520px';cv0.style.height='200px';const c=R2.cam;c.fov=38*PI/180;c.near=.5;c.far=240;c.target=[0,.5,0];c.eye=[0,6.5,23];R2.bg=o.bg;R2.t=0;R2.frame(o.root);}catch(e){}return true;};
 function wake(){document.querySelectorAll('.wc').forEach(c=>c.style.setProperty('--ac',AC[c.dataset.id]||'#ff9a4a'));if(!raf)raf=requestAnimationFrame(loop);}
 const rn8=render;render=function(){const r=rn8.apply(this,arguments);setTimeout(wake,30);return r;};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake();});
@@ -5213,5 +5237,34 @@ const d0=G3.die;G3.die=function(win){d0.apply(this,arguments);try{if(win&&B&&B.e
 setInterval(()=>{try{shadowCalc();shadowChip();}catch(e){}},4000);
 })();
 
+</script>
+<script>
+(function(){
+const ov=document.getElementById('wxload'),bar=document.getElementById('wxlb'),tx=document.getElementById('wxlt'),sm=document.getElementById('wxls');
+const set=(p,t)=>{try{bar.style.width=Math.round(p*100)+'%';if(t)tx.textContent=t;}catch(e){}};
+const TIPS=['Двойной тап по арене — перекат.','Боссы во второй фазе ломают арену.','Редкие предметы падают из сундуков с эффектами.','Твоя Тень помогает другим игрокам.'];
+sm.textContent=TIPS[Math.floor(Math.random()*TIPS.length)];
+let done=false;const hide=()=>{if(done)return;done=true;set(1,'Готово');setTimeout(()=>{ov.classList.add('out');setTimeout(()=>ov.remove(),600);},150);};
+setTimeout(hide,30000);
+(async function(){
+ try{
+  await new Promise(r=>setTimeout(r,60));
+  if(!(window.G3&&G3.supported())){hide();return;}
+  const seen={},list=[],add=e=>{if(!e||!e.spr)return;const k=[e.spr,(e.pal||[]).join(''),JSON.stringify(e.opt||{}),e.boss?1:0].join('|');if(!seen[k]){seen[k]=1;list.push(e);}};
+  try{WORLDS.forEach(w=>(w.enemies||[]).forEach(add));}catch(e){}
+  try{SECRETS.forEach(x=>x.w&&(x.w.enemies||[]).forEach(add));}catch(e){}
+  try{RARE.forEach(add);}catch(e){}
+  try{DUN.forEach(d=>add({n:d[0],spr:d[1],pal:d[2],boss:!!d[3]}));}catch(e){}
+  const ids=[];try{WORLDS.forEach(w=>ids.push(w.id));}catch(e){}
+  const tot=list.length+ids.length;
+  set(0,'Подготавливаем миры…');
+  for(let i=0;i<ids.length;i++){set(i/tot,'Строим локации '+(i+1)+'/'+ids.length);await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));try{W3_PRELOAD(ids[i]);}catch(e){}}
+  await MOB3D_PRELOAD(list,(n,t)=>set((ids.length+n)/tot,'Рисуем монстров '+n+'/'+t));
+  document.documentElement.classList.add('wx3d');
+  try{render();}catch(e){}
+ }catch(e){console.warn('preload',e);}
+ hide();
+})();
+})();
 </script>
 </body></html>
