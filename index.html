@@ -1,189 +1,208 @@
-<!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>Решатель кубика Рубика</title>
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кубик Рубика: сканер и решатель</title>
 <style>
-:root{--bg:#f4f5f7;--card:#fff;--tx:#1b1d22;--mu:#6b7280;--ac:#2f6df6;--bd:#dfe2e8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--card:#1f2228;--tx:#eceef2;--mu:#9aa1ad;--ac:#6b98ff;--bd:#323640}}
-:root[data-theme="dark"]{--bg:#14161a;--card:#1f2228;--tx:#eceef2;--mu:#9aa1ad;--ac:#6b98ff;--bd:#323640}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,sans-serif}
-main{max-width:480px;margin:0 auto;padding:12px}
-h1{font-size:18px;margin:4px 0 10px;display:flex;align-items:center;gap:8px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:10px}
-#scene{height:270px;perspective:800px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none}
-#cube{width:174px;height:174px;position:relative;transform-style:preserve-3d}
-.q{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;transform-style:preserve-3d}
-.q i{position:absolute;inset:0;background:#111;backface-visibility:hidden;border:3px solid #111;border-radius:8px}
-.views,.pal,.row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px}
-button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-button.p{background:var(--ac);color:#fff;border-color:var(--ac)}button:disabled{opacity:.4}
-button svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sw{width:46px;height:46px;border-radius:12px;flex-direction:column;justify-content:center;padding:0;font-size:11px;color:#000;font-weight:700}
-.sw.on{outline:3px solid var(--ac);outline-offset:2px}.sw.full{opacity:.45}
-#msg{color:var(--mu);font-size:13px;text-align:center;min-height:20px;margin:6px 0 0}
-#moves,.algs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;justify-content:center}
-.mv{width:38px;height:38px;border-radius:9px;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;padding:0;background:none}
-.mv svg{width:30px;height:30px;stroke:var(--tx);fill:none;stroke-width:2;stroke-linecap:round}.mv svg text{fill:var(--tx);stroke:none;font:700 12px system-ui}.mv svg polygon{fill:var(--tx)}
-.mv.done{opacity:.35}.mv.cur{background:var(--ac)}.mv.cur svg{stroke:#fff}.mv.cur svg text,.mv.cur svg polygon{fill:#fff}
-.big{display:flex;align-items:center;gap:12px;justify-content:center}.big .mv{width:64px;height:64px}.big .mv svg{width:52px;height:52px}
-.st{display:flex;justify-content:space-around;text-align:center;color:var(--mu);font-size:12px}.st b{display:block;color:var(--tx);font-size:20px}
-.hid{display:none!important}.grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}.grid6 .mv{width:100%;height:46px}
-.les{text-align:left}.les h3{margin:8px 0 4px;font-size:16px}.les p{margin:0;color:var(--mu)}
-#scan{position:fixed;inset:0;background:#000;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;padding:16px;text-align:center}
-#vw{position:relative;width:min(88vw,420px);aspect-ratio:1;background:#222;border-radius:12px;overflow:hidden}
-#vw video{width:100%;height:100%;object-fit:cover}
-#gr{position:absolute;inset:15%;display:grid;grid:repeat(3,1fr)/repeat(3,1fr);border:2px solid #fff}#gr i{border:1px solid #fff9}
-#scan button{background:#222;color:#fff;border-color:#555}#scan button.p{background:var(--ac)}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5f1;--fg:#1c1b19;--card:#fff;--mut:#6b6a66;--ac:#2f5fd0;--bd:#d9d7d0;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--fg:#f0eee8;--card:#242422;--mut:#a09e98;--ac:#7c9cf0;--bd:#3a3936;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171716;--fg:#f0eee8;--card:#242422;--mut:#a09e98;--ac:#7c9cf0;--bd:#3a3936;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0 0 4px}
+p{margin:6px 0}.mut{color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:12px 0}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:10px;padding:10px 14px;cursor:pointer}
+button.pri{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.net{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,auto);gap:6px;max-width:100%}
+.face{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;border-radius:6px;border:2px solid transparent}
+.face.cur{border-color:var(--ac)}
+.st{aspect-ratio:1;border-radius:3px;border:1px solid rgba(0,0,0,.35);min-width:0}
+.pal{display:flex;gap:10px;margin:10px 0}
+.sw{width:40px;height:40px;border-radius:50%;border:3px solid transparent;outline:1px solid rgba(0,0,0,.4);padding:0}
+.sw.on{border-color:var(--ac)}
+#cam{display:none}
+.vw{position:relative;width:100%;aspect-ratio:1;background:#000;border-radius:12px;overflow:hidden}
+.vw video{width:100%;height:100%;object-fit:cover}
+.grid{position:absolute;inset:20%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);border:2px solid #fff}
+.grid i{border:1px solid rgba(255,255,255,.8)}
+.err{color:#c0392b;font-weight:600}
+.big{font-size:56px;font-weight:700;text-align:center;line-height:1.1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:4px 9px;font-size:14px}.chips button.on{background:var(--ac);color:#fff}
+#sol{display:none}
 </style></head><body><main>
-<h1><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 12l9-5M12 12L3 7M12 12v10"/></svg>Решатель кубика Рубика<button id="vb" style="margin-left:auto;padding:6px 10px" title="Голос"></button></h1>
-<div class="card"><div id="scene"><div id="cube"></div></div>
-<div class="views" id="views"></div><div id="msg"></div></div>
+<h1>🧩 Кубик Рубика</h1>
+<p class="mut">Отсканируйте грани камерой или раскрасьте вручную, затем нажмите «Решить».</p>
 
-<div class="card" id="edit"><div class="pal" id="pal"></div>
-<div class="row">
-<button id="bsc"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>Скан</button>
-<button id="bcl"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Очистить</button>
-<button id="rst"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Собран</button></div>
-<div class="row">
-<button id="bpr"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="12" cy="12" r="1"/></svg>Тренировка</button>
-<button id="ble"><svg viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg>Обучение</button>
-<button class="p" id="slv"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Решить</button></div></div>
+<div class="card">
+  <div class="net" id="net"></div>
+  <div class="pal" id="pal"></div>
+  <p class="mut">Выберите цвет и нажмите на наклейку, чтобы её исправить. Центры не меняются. Нажмите на грань, чтобы выбрать её для сканирования.</p>
+  <div class="row">
+    <button class="pri" id="bscan">📷 Сканировать</button>
+    <button id="bdemo">Случайный кубик</button>
+    <button id="bclr">Очистить</button>
+  </div>
+</div>
 
-<div class="card hid" id="play"><div class="st"><div><b id="n1">0</b>ходов</div><div><b id="n2">0</b>шаг</div></div>
-<div id="moves"></div><div class="big" id="big"></div>
-<div class="row"><button id="pv"><svg viewBox="0 0 24 24"><path d="M19 5L9 12l10 7zM5 5v14"/></svg></button>
-<button class="p" id="pl"></button>
-<button id="nx"><svg viewBox="0 0 24 24"><path d="M5 5l10 7-10 7zM19 5v14"/></svg></button>
-<button id="ed"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg>Правка</button></div></div>
+<div class="card" id="cam">
+  <p id="hint" style="font-weight:600"></p>
+  <div class="vw"><video id="vid" playsinline muted></video><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  <div class="row" style="margin-top:10px"><button class="pri" id="snap">Снять грань</button><button id="stop">Закрыть камеру</button></div>
+  <p class="mut">Расположите наклейки в рамке при хорошем свете, затем проверьте цвета и исправьте ошибки.</p>
+</div>
 
-<div class="card hid" id="prac"><div class="st"><div><b id="p1">0</b>ходов</div><div><b id="p2">0</b>время, с</div></div>
-<div class="grid6" id="g1"></div><div class="grid6" id="g2"></div>
-<div class="row"><button id="hint"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/></svg>Подсказка</button>
-<button id="pnew"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Новый</button>
-<button id="pex">Выход</button></div></div>
+<button class="pri" id="bsolve" style="width:100%;padding:14px">Решить кубик</button>
+<p id="msg" class="err"></p>
 
-<div class="card hid les" id="learn"><div class="row" id="lt"></div><div id="lb"></div>
-<div class="row"><button id="lx">Назад</button></div></div>
+<div class="card" id="sol">
+  <p class="mut" id="intro"></p>
+  <div class="mut" id="cnt" style="text-align:center"></div>
+  <div class="big" id="mv"></div>
+  <p id="ex" style="text-align:center"></p>
+  <div class="net" id="net2" style="margin:10px 0"></div>
+  <div class="row" style="justify-content:center"><button id="prev">← Назад</button><button class="pri" id="next">Дальше →</button></div>
+  <p class="mut" style="margin-top:12px">Все ходы (нажмите, чтобы перейти):</p>
+  <div class="chips" id="chips"></div>
+  <p class="mut">Обозначения: U верх, D низ, L лево, R право, F перед, B зад. Буква — поворот грани на 90° по часовой стрелке (если смотреть на эту грань). Знак ’ — против часовой, 2 — на 180°.</p>
+</div>
 </main>
-
-<div id="scan" class="hid"><div id="st1" style="font-size:16px"></div>
-<div id="vw"><video id="vd" playsinline muted></video><div id="gr"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-<div id="st2" style="font-size:13px;opacity:.8;max-width:360px"></div>
-<div class="row"><button id="sb">Назад</button><button class="p" id="ss">Снять грань</button><button id="sf">Фото<input id="fi" type="file" accept="image/*" capture="environment" hidden></button><button id="sx">Закрыть</button></div></div>
-
 <script src="https://cdn.jsdelivr.net/npm/cubejs@1.3.2/lib/cube.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/cubejs@1.3.2/lib/solve.js"></script>
 <script>
-const $=id=>document.getElementById(id),FACES='URFDLB',SOLVED=FACES.split('').map(f=>f.repeat(9)).join('');
-const COL={U:'#f4f4f4',R:'#d9302c',F:'#2fa24f',D:'#f5d423',L:'#f58220',B:'#1f5fd6','-':'#7d828c'};
-const NAME={U:'Белый',R:'Красный',F:'Зелёный',D:'Жёлтый',L:'Оранжевый',B:'Синий'};
-let st=SOLVED,sel='U',sol=null,idx=0,timer=null,t0=0,auto=null,ready=false,pr=false,pm=0,bk=null;
-const msg=t=>$('msg').textContent=t,cube=$('cube'),stk=[];
-const FT={U:'rotateX(90deg)',D:'rotateX(-90deg)',F:'',B:'rotateY(180deg)',R:'rotateY(90deg)',L:'rotateY(-90deg)'},CS=58,qs=[];
-for(let x=-1;x<2;x++)for(let y=-1;y<2;y++)for(let z=-1;z<2;z++){const q=document.createElement('div');q.className='q';q.style.transform=`translate3d(${x*CS}px,${y*CS}px,${z*CS}px)`;q.p=[x,y,z];
-FACES.split('').forEach(f=>{const i=document.createElement('i');i.style.transform=FT[f]+' translateZ(28px)';q.appendChild(i);q['f'+f]=i});cube.appendChild(q);qs.push(q)}
-const pos=(f,r,c)=>({U:[c-1,-1,r-1],R:[1,r-1,1-c],F:[c-1,r-1,1],D:[c-1,1,1-r],L:[-1,r-1,c-1],B:[1-c,r-1,-1]})[f];
-FACES.split('').forEach((f,fi)=>{for(let j=0;j<9;j++){const[x,y,z]=pos(f,j/3|0,j%3),e=qs[(x+1)*9+(y+1)*3+z+1]['f'+f];e.className='s';e.dataset.i=fi*9+j;stk.push(e)}});
-let rx=-25,ry=-35;const turn=()=>cube.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`;turn();
-const ic={U:'<path d="M12 4v16M5 11l7-7 7 7"/>',F:'<rect x="5" y="5" width="14" height="14" rx="2"/>',R:'<path d="M20 12H4M13 5l7 7-7 7"/>',L:'<path d="M4 12h16M11 5l-7 7 7 7"/>',B:'<rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V6a1 1 0 0 1 1-1h9"/>',D:'<path d="M12 4v16M5 13l7 7 7-7"/>'};
-$('views').innerHTML=FACES.split('').map(f=>`<button data-v="${f}" title="${NAME[f]}" style="padding:6px 10px"><span style="width:14px;height:14px;border-radius:4px;background:${COL[f]};border:1px solid #0005"></span><svg viewBox="0 0 24 24">${ic[f]}</svg></button>`).join('');
-const VW={U:[-90,0],D:[90,0],F:[0,0],R:[0,-90],L:[0,90],B:[0,180]};
-$('views').onclick=e=>{const b=e.target.closest('button');if(!b)return;[rx,ry]=VW[b.dataset.v];cube.style.transition='transform .4s';turn();setTimeout(()=>cube.style.transition='',420)};
-$('pal').innerHTML=FACES.split('').map(f=>`<button class="sw" data-c="${f}" style="background:${COL[f]}" title="${NAME[f]}"><span></span></button>`).join('');
-$('pal').onclick=e=>{const b=e.target.closest('.sw');if(b){sel=b.dataset.c;render()}};
-let dn=null,mv=false;const sc=$('scene');
-sc.onpointerdown=e=>{dn={x:e.clientX,y:e.clientY,t:e.target};mv=false};
-sc.onpointermove=e=>{if(!dn)return;const dx=e.clientX-dn.x,dy=e.clientY-dn.y;if(!mv&&Math.hypot(dx,dy)<6)return;mv=true;ry+=dx*.5;rx=Math.max(-90,Math.min(90,rx-dy*.5));dn.x=e.clientX;dn.y=e.clientY;turn()};
-sc.onpointerup=()=>{if(dn&&!mv&&!sol&&!pr&&dn.t.classList.contains('s')){const i=+dn.t.dataset.i;
-if(st[i]!=sel){if([...st].filter(x=>x==sel).length>=9)msg(NAME[sel]+': уже 9 клеток, больше нельзя. Перекрасьте другую клетку.');else{st=st.slice(0,i)+sel+st.slice(i+1);msg('');render()}}}dn=null};
-const cmap=s=>{const m={};for(let k=0;k<6;k++)m[s[k*9+4]]=FACES[k];return m};
-const cvalid=s=>new Set(FACES.split('').map((f,k)=>s[k*9+4])).size==6&&!s.includes('-');
-const norm=s=>{const m=cmap(s);return[...s].map(x=>m[x]).join('')};
-function apply(s,mvs){const inv={};for(let k=0;k<6;k++)inv[FACES[k]]=s[k*9+4];return[...Cube.fromString(norm(s)).move(mvs).asString()].map(x=>inv[x]).join('')}
-const isSolved=s=>FACES.split('').every((f,k)=>new Set(s.slice(k*9,k*9+9)).size==1);
-function shown(){if(!sol)return st;try{return apply(st,sol.slice(0,idx).join(' '))}catch(e){return st}}
-let busy=false;const LY={U:[1,-1,-1],D:[1,1,1],R:[0,1,1],L:[0,-1,-1],F:[2,1,1],B:[2,-1,-1]};
-function anim(m){return new Promise(res=>{const[a,v,sg]=LY[m[0]],n=m[1]=="'"?-1:m[1]=='2'?2:1,g=document.createElement('div');
-g.style.cssText='position:absolute;inset:0;transform-style:preserve-3d';cube.appendChild(g);const mv=qs.filter(q=>q.p[a]==v);mv.forEach(q=>g.appendChild(q));
-g.getBoundingClientRect();g.style.transition='transform .4s ease-in-out';g.style.transform=`rotate${'XYZ'[a]}(${n*sg*90}deg)`;
-setTimeout(()=>{mv.forEach(q=>cube.appendChild(q));g.remove();res()},430)})}
-let voiceOn=true;const SP='<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/>';
-const vbr=()=>$('vb').innerHTML=SP+(voiceOn?'<path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>':'<path d="M17 9l5 6M22 9l-5 6"/>')+'</svg>';
-function speak(t){if(!voiceOn||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.95;const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('ru'));if(v)u.voice=v;speechSynthesis.speak(u)}
-const spk=t=>t.replace(/\b([URFDLB])('|2)?(?![A-Za-z])/g,(_,a,b)=>({U:'верх',D:'низ',R:'право',L:'лево',F:'перед',B:'зад'})[a]+(b=="'"?' штрих':b=='2'?' два':''));
-$('vb').onclick=()=>{voiceOn=!voiceOn;if(!voiceOn&&window.speechSynthesis)speechSynthesis.cancel();vbr()};vbr();
-const say=()=>{if(sol)speak(idx<sol.length?`Шаг ${idx+1} из ${sol.length}. ${desc(sol[idx])}.`:'Куб собран. Отличная работа.')};
-async function fwd(){if(busy||!sol||idx>=sol.length)return;busy=true;await anim(sol[idx]);idx++;busy=false;render();say()}
-async function back(){if(busy||!sol||idx<=0)return;busy=true;const m=sol[idx-1];await anim(m[1]=="'"?m[0]:m[1]=='2'?m:m+"'");idx--;busy=false;render();say()}
-const pause=()=>new Promise(r=>{let k=0;const t=setInterval(()=>{if(!(voiceOn&&window.speechSynthesis&&speechSynthesis.speaking)||++k>60){clearInterval(t);setTimeout(r,300)}},150)});
-async function loop(){while(auto&&sol&&idx<sol.length){await fwd();await pause()}auto=null;setPl(false)}
-function mvSvg(m){const L=m[0],p=m[1]=="'",d=m[1]=='2';return `<svg viewBox="0 0 36 36"><g ${p?'transform="translate(36 0) scale(-1 1)"':''}><path d="M9 9A12 12 0 1 1 6 19" fill="none"/><polygon points="3,5 13,6 8,15" stroke-width="1"/></g><text x="18" y="22" text-anchor="middle">${L}${d?'2':''}</text></svg>`}
-const FN={U:'верхнюю',D:'нижнюю',F:'переднюю',B:'заднюю',R:'правую',L:'левую'};
-const desc=m=>`Поверните ${FN[m[0]]} грань ${m[1]=="'"?'против часовой стрелки':m[1]=='2'?'на 180 градусов':'по часовой стрелке'}`;
-function render(){const s=shown(),c={};stk.forEach((e,i)=>{e.style.background=COL[s[i]];c[s[i]]=(c[s[i]]||0)+1});
-document.querySelectorAll('.sw').forEach(b=>{const k=b.dataset.c,n=c[k]||0;b.classList.toggle('on',k==sel);b.classList.toggle('full',n>=9&&k!=sel);b.firstChild.textContent=n+'/9'});
-if(sol){$('n1').textContent=sol.length;$('n2').textContent=idx;$('moves').innerHTML=sol.map((m,i)=>`<div class="mv ${i<idx?'done':i==idx?'cur':''}">${mvSvg(m)}</div>`).join('');
-$('big').innerHTML=idx<sol.length?`<div class="mv cur">${mvSvg(sol[idx])}</div><div>${desc(sol[idx])}</div>`:'<div>Готово</div>';
-$('pv').disabled=idx==0;$('nx').disabled=idx>=sol.length}}
-const setPl=on=>$('pl').innerHTML=on?'<svg viewBox="0 0 24 24"><path d="M7 5v14M17 5v14"/></svg>Пауза':'<svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Авто';setPl(false);
-function show(n){['edit','play','prac','learn'].forEach(k=>$(k).classList.toggle('hid',k!=n))}
-function stop(){clearInterval(auto);auto=null;clearInterval(timer);setPl(false)}
-function edit(){stop();sol=null;pr=false;if(bk){st=bk;bk=null}show('edit');msg('Выберите цвет и нажимайте на клетки. Каждого цвета ровно по 9.');render()}
-function go(n){idx=Math.max(0,Math.min(sol.length,n));if(idx>=sol.length){clearInterval(auto);auto=null;setPl(false)}render()}
-const ensure=()=>{if(typeof Cube=='undefined')throw 0;if(!ready){Cube.initSolver();ready=true}};
-$('rst').onclick=()=>{st=SOLVED;edit()};
-$('bcl').onclick=()=>{st=FACES.split('').map(f=>'-'.repeat(9)).join('');edit();msg('Куб очищен. Раскрасьте его как настоящий.')};
-$('ed').onclick=edit;$('pex').onclick=edit;$('lx').onclick=edit;
-$('slv').onclick=()=>{const c={};[...st].forEach(x=>c[x]=(c[x]||0)+1);
-if(FACES.split('').some(f=>c[f]!=9)||!cvalid(st))return msg('Закрасьте все клетки: каждого цвета ровно 9, а центры шести граней должны быть разных цветов.');
-msg('Считаю решение...');$('slv').disabled=true;
-setTimeout(()=>{try{ensure();const r=Cube.fromString(norm(st)).solve().trim();sol=r?r.split(/\s+/):[];idx=0;show('play');
-msg(sol.length?'Решение найдено. Делайте ходы по шагам или нажмите Авто.':'Куб уже собран.');render();speak(sol.length?`Решение найдено, ходов: ${sol.length}. ${desc(sol[0])}.`:'Куб уже собран.')}
-catch(e){msg('Такую раскраску собрать нельзя или не загрузилась библиотека. Проверьте цвета и интернет.')}$('slv').disabled=false},60)};
-$('nx').onclick=fwd;$('pv').onclick=back;
-$('pl').onclick=()=>{if(auto){auto=null;setPl(false)}else{if(idx>=sol.length){idx=0;render()}setPl(true);auto=true;loop()}};
-/* тренировка */
-const MV=['U','R','F','D','L','B'];
-$('g1').innerHTML=MV.map(m=>`<button class="mv" data-m="${m}">${mvSvg(m)}</button>`).join('');
-$('g2').innerHTML=MV.map(m=>`<button class="mv" data-m="${m}'">${mvSvg(m+"'")}</button>`).join('');
-function startPr(){try{ensure();stop();st=Cube.random().asString();pr=true;sol=null;pm=0;$('p1').textContent=0;t0=Date.now();$('p2').textContent=0;
-timer=setInterval(()=>$('p2').textContent=Math.floor((Date.now()-t0)/1000),500);show('prac');msg('Соберите кубик сами. Кнопки внизу крутят грани. Нужна помощь: нажмите Подсказка.');render()}catch(e){msg('Не загрузилась библиотека. Проверьте интернет.')}}
-$('bpr').onclick=()=>{bk=null;startPr()};$('pnew').onclick=startPr;
-document.querySelectorAll('#prac .mv').forEach(b=>b.onclick=async()=>{if(busy||isSolved(st))return;busy=true;await anim(b.dataset.m);busy=false;st=apply(st,b.dataset.m);$('p1').textContent=++pm;render();
-if(isSolved(st)){clearInterval(timer);const t=`Собрано! Ходов: ${pm}, время: ${$('p2').textContent} секунд.`;msg(t);speak(t)}});
-$('hint').onclick=()=>{try{const r=Cube.fromString(norm(st)).solve().trim();if(!r)return msg('Уже собрано');const a=r.split(/\s+/),t=`Подсказка: ${desc(a[0])}. Осталось ходов: ${a.length}.`;msg(t);speak(t)}catch(e){msg('Подсказка недоступна')}};
-/* обучение */
-const LES=[['Знакомство','Центры граней не двигаются: белый напротив жёлтого, красный напротив оранжевого, зелёный напротив синего. Буква это грань (U верх, D низ, F перед, B зад, R право, L лево). Стрелка по часовой, зеркальная против часовой, цифра 2 полуоборот. Держите белый центр внизу.',"R U R' U'"],
-['1. Белый крест','Соберите крест из четырёх белых рёбер на нижней грани. Боковой цвет каждого ребра должен совпасть с центром соседней грани. Ставьте ребро на верхний слой под своё место и поворачивайте грань на 180 градусов (F2).',''],
-['2. Белые углы','Поставьте угловой кубик в верхнем слое над его местом (справа от передней грани). Повторяйте R U R\' U\' до 5 раз, пока угол не встанет белой наклейкой вниз. Так со всеми четырьмя углами.',"R U R' U' R U R' U'"],
-['3. Второй слой','Ребро без жёлтого поставьте под центр своего цвета на передней грани. Вправо: U R U\' R\' U\' F\' U F. Влево: U\' L\' U L U F U\' F\'.',"U R U' R' U' F' U F"],
-['4. Жёлтый крест','Жёлтая грань сверху. Повторяйте F R U R\' U\' F\', пока на верху не появится жёлтый крест.',"F R U R' U' F'"],
-['5. Финал','Расставьте жёлтые углы: U R U\' L\' U R\' U\' L. Затем поверните каждый угол алгоритмом R\' D\' R D (повторяйте до жёлтого сверху, крутя только верхнюю грань между углами).',"U R U' L' U R' U' L"]];
-$('lt').innerHTML=LES.map((l,i)=>`<button data-l="${i}" style="padding:6px 12px">${i+1}</button>`).join('');
-function lesson(i){const l=LES[i],a=l[2]?l[2].split(' '):[];$('lb').innerHTML=`<h3>${l[0]}</h3><p>${l[1]}</p><div class="row"><button id="ls">Озвучить урок</button></div>`+(a.length?`<div class="algs">${a.map(m=>`<div class="mv">${mvSvg(m)}</div>`).join('')}</div><div class="row"><button class="p" id="dm"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Показать на кубе</button></div>`:'');
-$('ls').onclick=()=>speak(spk(l[0]+'. '+l[1]));if(a.length)$('dm').onclick=()=>{stop();bk=bk||st;st=SOLVED;sol=a;idx=0;show('play');msg('Демонстрация алгоритма. Нажмите Правка, чтобы вернуться.');render()}}
-$('lt').onclick=e=>{const b=e.target.closest('button');if(b)lesson(+b.dataset.l)};
-$('ble').onclick=()=>{show('learn');lesson(0);msg('Обучение: метод по слоям.')};
-/* скан */
-const sw=$('scan'),vd=$('vd');let raw=[],si=0,stream=null;
-const HINT=['Верх: белый центр к камере, зелёный центр внизу','Право: красный центр к камере, белый сверху','Перед: зелёный центр к камере, белый сверху','Низ: жёлтый центр к камере, зелёный сверху','Лево: оранжевый центр к камере, белый сверху','Зад: синий центр к камере, белый сверху'];
-function sinfo(){$('st1').textContent=`Грань ${si+1} из 6`;$('st2').textContent=HINT[si]+'. Совместите 9 клеток с сеткой.'}
-function lab(r,g,b){const f=v=>{v/=255;return v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92};r=f(r);g=f(g);b=f(b);
-const x=(.4124*r+.3576*g+.1805*b)/.9505,y=.2126*r+.7152*g+.0722*b,z=(.0193*r+.1192*g+.9505*b)/1.089,h=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
-return[116*h(y)-16,500*(h(x)-h(y)),200*(h(y)-h(z))]}
-function snap(src,w,h){const c=document.createElement('canvas');c.width=c.height=300;const x=c.getContext('2d'),sd=Math.min(w,h)*.7;
-x.drawImage(src,(w-sd)/2,(h-sd)/2,sd,sd,0,0,300,300);const f=[];
-for(let j=0;j<9;j++){const d=x.getImageData((j%3)*100+35,Math.floor(j/3)*100+35,30,30).data;let r=0,g=0,b=0;for(let k=0;k<d.length;k+=4){r+=d[k];g+=d[k+1];b+=d[k+2]}const n=d.length/4;f.push(lab(r/n,g/n,b/n))}
-raw.push(f);si++;if(si<6)sinfo();else finishScan()}
-function finishScan(){const cen=raw.map(f=>f[4]);let s='';
-raw.forEach(f=>f.forEach(p=>{let bi=0,bd=1e9;cen.forEach((q,k)=>{const d=(p[0]-q[0])**2*.4+(p[1]-q[1])**2+(p[2]-q[2])**2;if(d<bd){bd=d;bi=k}});s+=FACES[bi]}));
-closeScan();st=s;edit();const c={};[...s].forEach(x=>c[x]=(c[x]||0)+1);
-msg(FACES.split('').every(f=>c[f]==9)?'Скан завершён. Проверьте цвета на модели и нажмите Решить.':'Скан завершён, но цвета определились неточно. Исправьте клетки вручную (по 9 каждого цвета).')}
-function closeScan(){sw.classList.add('hid');if(stream)stream.getTracks().forEach(t=>t.stop());stream=null}
-$('bsc').onclick=()=>{raw=[];si=0;sw.classList.remove('hid');sinfo();
-navigator.mediaDevices&&navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>{stream=s;vd.srcObject=s;vd.play()}).catch(()=>{$('st2').textContent='Камера недоступна здесь. Нажмите Фото и сделайте снимок грани. '+HINT[si]})};
-$('ss').onclick=()=>{if(vd.videoWidth)snap(vd,vd.videoWidth,vd.videoHeight);else $('st2').textContent='Видео нет. Используйте кнопку Фото.'};
-$('sf').onclick=()=>$('fi').click();
-$('fi').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>snap(im,im.width,im.height);im.src=URL.createObjectURL(f);e.target.value=''};
-$('sb').onclick=()=>{if(si>0){si--;raw.pop();sinfo()}};$('sx').onclick=closeScan;
-edit();render();
+const F=['U','R','F','D','L','B'];
+const DEF={U:'W',R:'R',F:'G',D:'Y',L:'O',B:'B'};
+const HEX={W:'#f4f4f4',R:'#d92b2b',G:'#1fa34a',Y:'#f5d20a',O:'#ff8a1f',B:'#1f55d6'};
+const CN={W:'белый',R:'красный',G:'зелёный',Y:'жёлтый',O:'оранжевый',B:'синий'};
+const FN={U:'верхней',D:'нижней',L:'левой',R:'правой',F:'передней',B:'задней'};
+const POS={U:[1,0],L:[0,1],F:[1,1],R:[2,1],B:[3,1],D:[1,2]};
+const SC=['F','R','B','L','U','D'];
+const HINT={F:'Зелёный центр к камере, белый центр сверху',R:'Красный центр к камере, белый центр сверху',B:'Синий центр к камере, белый центр сверху',L:'Оранжевый центр к камере, белый центр сверху',U:'Белый центр к камере, синий центр сверху',D:'Жёлтый центр к камере, зелёный центр сверху'};
+const $=id=>document.getElementById(id);
+let S={},pc='W',cf='F',si=0,stream=null,inited=false,states=[],moves=[],step=0;
+
+function reset(){F.forEach(f=>{S[f]=Array(9).fill(null);S[f][4]=DEF[f]});}
+function net(el,get,click){
+  el.innerHTML='';
+  F.forEach(f=>{
+    const d=document.createElement('div');d.className='face'+(click&&f===cf?' cur':'');
+    d.style.gridColumn=POS[f][0]+1;d.style.gridRow=POS[f][1]+1;
+    for(let i=0;i<9;i++){
+      const s=document.createElement('div');s.className='st';
+      const c=get(f,i);s.style.background=c?HEX[c]:'#8884';
+      if(click)s.onclick=e=>{e.stopPropagation();cf=f;if(i!==4)S[f][i]=pc;draw()};
+      d.appendChild(s);
+    }
+    if(click)d.onclick=()=>{cf=f;si=SC.indexOf(f);draw()};
+    el.appendChild(d);
+  });
+}
+function draw(){net($('net'),(f,i)=>S[f][i],true);}
+function pal(){
+  const p=$('pal');p.innerHTML='';
+  Object.keys(HEX).forEach(c=>{const b=document.createElement('button');b.className='sw'+(c===pc?' on':'');b.style.background=HEX[c];b.title=CN[c];b.onclick=()=>{pc=c;pal()};p.appendChild(b)});
+}
+reset();draw();pal();
+
+// Камера
+function hsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;
+  if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360}
+  return [h,mx?d/mx:0,mx]}
+function classify(r,g,b){
+  const [h,s,v]=hsv(r,g,b);
+  if(s<0.28&&v>0.45)return 'W';
+  if(h>=345||h<12)return 'R';
+  if(h<40)return 'O';
+  if(h<75)return 'Y';
+  if(h<170)return 'G';
+  return 'B';
+}
+async function startCam(){
+  $('msg').textContent='';
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+    $('vid').srcObject=stream;await $('vid').play();$('cam').style.display='block';hintUpd();
+  }catch(e){$('msg').textContent='Нет доступа к камере. Раскрасьте кубик вручную или разрешите камеру в настройках.'}
+}
+function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('cam').style.display='none'}
+function hintUpd(){cf=SC[si];$('hint').textContent='Грань '+(si+1)+'/6 ('+FN[cf]+'): '+HINT[cf];draw()}
+function snap(){
+  const v=$('vid'),vw=v.videoWidth,vh=v.videoHeight;if(!vw)return;
+  const s=Math.min(vw,vh),sx=(vw-s)/2,sy=(vh-s)/2;
+  const cv=document.createElement('canvas');cv.width=cv.height=s;
+  const x=cv.getContext('2d');x.drawImage(v,sx,sy,s,s,0,0,s,s);
+  const r=Math.round(s*0.04);
+  for(let row=0;row<3;row++)for(let col=0;col<3;col++){
+    const i=row*3+col;if(i===4)continue;
+    const cx=Math.round(s*(0.3+0.2*col)),cy=Math.round(s*(0.3+0.2*row));
+    const d=x.getImageData(cx-r,cy-r,2*r,2*r).data;let R=0,G=0,B=0,n=d.length/4;
+    for(let k=0;k<d.length;k+=4){R+=d[k];G+=d[k+1];B+=d[k+2]}
+    S[cf][i]=classify(R/n,G/n,B/n);
+  }
+  si++;if(si>=6){si=5;stopCam();draw();$('msg').textContent='';}else hintUpd();
+  draw();
+}
+$('bscan').onclick=startCam;$('stop').onclick=stopCam;$('snap').onclick=snap;
+$('bclr').onclick=()=>{reset();$('sol').style.display='none';$('msg').textContent='';si=0;cf='F';draw()};
+$('bdemo').onclick=()=>{
+  try{
+    const c=new Cube();const m=['U','D','L','R','F','B'],sf=['',"'",'2'];let a=[];
+    for(let i=0;i<25;i++)a.push(m[Math.random()*6|0]+sf[Math.random()*3|0]);
+    c.move(a.join(' '));load(c.asString());$('msg').textContent='';
+  }catch(e){$('msg').textContent='Библиотека не загрузилась — проверьте интернет.'}
+};
+function load(str){
+  const inv={};F.forEach(f=>inv[f]=DEF[f]);
+  F.forEach((f,fi)=>{for(let i=0;i<9;i++)S[f][i]=inv[str[fi*9+i]]});draw();
+}
+
+// Решение
+$('bsolve').onclick=()=>{
+  const m={};F.forEach(f=>m[DEF[f]]=f);let str='';const cnt={};
+  for(const f of F)for(const c of S[f]){
+    if(!c){$('msg').textContent='Заполнены не все наклейки (серые).';return}
+    str+=m[c];cnt[c]=(cnt[c]||0)+1;
+  }
+  for(const c in HEX)if(cnt[c]!==9){$('msg').textContent='Цветов должно быть по 9 каждого. Сейчас: '+CN[c]+' — '+(cnt[c]||0)+'. Исправьте ошибки.';return}
+  if(typeof Cube==='undefined'){$('msg').textContent='Решатель не загрузился — проверьте интернет.';return}
+  $('msg').textContent='Считаю… (в первый раз до нескольких секунд)';
+  setTimeout(()=>{
+    try{
+      if(!inited){Cube.initSolver();inited=true}
+      const sol=Cube.fromString(str).solve().trim();
+      moves=sol?sol.split(/\s+/):[];
+      const c=Cube.fromString(str);states=[str];
+      moves.forEach(x=>{c.move(x);states.push(c.asString())});
+      step=0;$('msg').textContent='';showSol();
+    }catch(e){$('msg').textContent='Такой кубик собрать нельзя: вероятно, цвета введены неверно (например, перепутаны соседние наклейки). Проверьте и исправьте.'}
+  },40);
+};
+function explain(x){
+  const f=x[0],s=x[1];
+  const t=s==="'"?'против часовой стрелки на 90°':s==='2'?'на 180° (в любую сторону)':'по часовой стрелке на 90°';
+  return 'Поверните '+FN[f]+' грань '+t+'.';
+}
+const disp=x=>x.replace("'","’");
+function showSol(){
+  $('sol').style.display='block';
+  $('intro').textContent=moves.length?'Держите кубик так: белый центр сверху, зелёный центр к вам. Всего ходов: '+moves.length+'.':'';
+  const ch=$('chips');ch.innerHTML='';
+  moves.forEach((x,i)=>{const b=document.createElement('button');b.textContent=disp(x);b.id='c'+i;b.onclick=()=>{step=i+1;upd()};ch.appendChild(b)});
+  upd();$('sol').scrollIntoView({behavior:'smooth'});
+}
+function upd(){
+  const done=step===moves.length;
+  $('cnt').textContent=moves.length?(step===0?'Исходное положение':'Ход '+step+' из '+moves.length):'';
+  $('mv').textContent=moves.length?(step===0?'▶':disp(moves[step-1])):'';
+  $('ex').textContent=!moves.length?'Кубик уже собран! 🎉':step===0?'Нажмите «Дальше», чтобы начать.':explain(moves[step-1])+(done?' Кубик собран! 🎉':'');
+  const st=states[step];
+  net($('net2'),(f,i)=>DEF[st[F.indexOf(f)*9+i]],false);
+  moves.forEach((_,i)=>{const b=$('c'+i);if(b)b.className=i===step-1?'on':''});
+  $('prev').disabled=step===0;$('next').disabled=done||!moves.length;
+}
+$('prev').onclick=()=>{if(step>0){step--;upd()}};
+$('next').onclick=()=>{if(step<moves.length){step++;upd()}};
 </script></body></html>
